@@ -31,5 +31,6 @@
 
 /* Keep all page imagery and the two geometric-grounding cards centered. */
 img{display:block;max-width:100%;height:auto;margin-inline:auto}
+.two-col.single-col{grid-template-columns:minmax(0,1fr);justify-items:center}
 .three-cards{grid-template-columns:repeat(2,minmax(0,1fr));max-width:900px;margin-inline:auto}
 @media(max-width:560px){.three-cards{grid-template-columns:1fr}}
