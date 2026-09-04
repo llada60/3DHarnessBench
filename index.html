@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="3DHarnessBench: Probing Agentic 3D-to-Code Capabilities of Frontier Vision-Language Models."
+        name="description" />
+    <meta content="3DHarnessBench" property="og:title" />
+    <meta content="Agentic executable 3D reconstruction under hierarchical target-side 3D access."
+        property="og:description" />
+    <meta content="assets/figures/teaser.png" property="og:image" />
+    <title>3DHarnessBench</title>
+    <link href="assets/icon.png" rel="icon" type="image/png" />
+    <link href="style.css" rel="stylesheet" />
+</head>
+
+<body>
+    <main>
+        <!-- 1. HERO / TITLE -->
+        <section class="hero container" id="top">
+            <img alt="3DHarnessBench" class="title-logo" src="assets/title-logo.png" />
+            <p class="subtitle">Probing Agentic 3D-to-Code Capabilities of Frontier Vision-Language Models</p>
+            <!-- <p class="venue">3DV 2027 Submission</p> -->
+            <div class="authors">Ling Liu<sup>1,2,3</sup>  ·  Bingchen Gong<sup>1,2</sup>  ·  Amal Dev
+                Parakkat<sup>1,3</sup>  ·  Maks Ovsjanikov<sup>1,2</sup></div>
+            <div class="affiliations"><sup>1</sup> Institut Polytechnique de Paris    <sup>2</sup> École Polytechnique
+                   <sup>3</sup> Télécom Paris</div>
+            <div class="buttons">
+                <a aria-disabled="true" class="btn disabled" id="paperLink">Paper <span>coming soon</span></a>
+                <a aria-disabled="true" class="btn disabled" id="codeLink">Code <span>coming soon</span></a>
+                <a aria-disabled="true" class="btn disabled" id="dataLink">Benchmark <span>coming soon</span></a>
+            </div>
+            <figure class="hero-figure-wrap">
+                <img alt="3DHarnessBench overview" class="hero-figure" src="assets/figures/teaser.png" />
+                <!-- <figcaption>3DHarnessBench evaluates seven frontier VLM agents on reconstructing target 3D objects as executable Blender Python code under progressively richer target-side access.</figcaption> -->
+            </figure>
+        </section>
+        <!-- 2. ABSTRACT -->
+        <section class="section container" id="abstract">
+            <h2>Abstract</h2>
+            <p class="abstract-text">We introduce <b>3DHarnessBench</b>, a benchmark that evaluates the agentic ability
+                of frontier vision-language models (VLMs) to recover 3D geometry as Blender Python code from a variety
+                of inputs. Unlike previous frameworks that prompt the VLMs with a fixed input (e.g., a single rendering
+                or a text description), 3DHarnessBench evaluates four separate harness settings that progressively
+                enable active agentic exploration, facilitated by recent Blender MCP functionality. Our hierarchy from
+                <b>Single-view</b>, <b>Multi-view</b>, <b>Active Visual</b> (arbitrary viewpoint access), and <b>Full 3D
+                    Interaction</b> (complete access to the target object through Blender function calls) probes the
+                models’ abilities in both visual perception and active inference, tool calling, and self-correction. We
+                observe that the ability of all frontier models to recover 3D geometry improves significantly with
+                richer function call access, although the improvements are strongly model-dependent, revealing highly
+                uneven agentic 3D-to-code capabilities. We will release the benchmark, code, outputs, and agent
+                trajectories for reproducible 3D evaluation.
+            </p>
+        </section>
+        <!-- 3. INTERACTIVE RESULTS GALLERY -->
+        <section class="section section-soft" id="gallery">
+            <div class="container">
+                <h2>🎨 Results Gallery</h2>
+                <p class="section-intro">Explore the same target reconstructed by all seven agents across the four
+                    harness settings. Use the tabs to switch examples.</p>
+                <div class="gallery-tabs" role="tablist">
+                    <button class="tab active"
+                        data-caption="Bird — Active Visual and Full 3D Interaction help stronger agents recover body proportions and articulated rear structure."
+                        data-img="assets/figures/bird_visualization.png">Bird</button>
+                    <button class="tab"
+                        data-caption="Crustacean — richer target access helps recover the elongated body and articulated appendages."
+                        data-img="assets/figures/CrustaceanFactory_visualization.png">Crustacean</button>
+                    <button class="tab"
+                        data-caption="Auger — interactive access improves the tapered profile and repeated helical structure."
+                        data-img="assets/figures/AugerFactory_visualization.png">Auger</button>
+                    <button class="tab"
+                        data-caption="FlowerPlant — stronger agents recover the multi-part arrangement of stems, leaves, and blossoms."
+                        data-img="assets/figures/FlowerPlantFactory_visualization.png">FlowerPlant</button>
+                </div>
+                <figure class="gallery-view">
+                    <img alt="Qualitative reconstruction comparison" id="galleryImage"
+                        src="assets/figures/bird_visualization.png" />
+                    <!-- <figcaption id="galleryCaption">Bird — Active Visual and Full 3D Interaction help stronger agents
+                        recover body proportions and articulated rear structure.</figcaption> -->
+                </figure>
+            </div>
+        </section>
+        <!-- 4. OVERVIEW -->
+        <section class="section container" id="overview">
+            <h2>Overview</h2>
+            <p class="section-intro">We introduce 3DHarnessBench,a benchmark that keeps the executable reconstruction
+                objective fixed while systematically varying the agent's access to
+                the target. Here are the four harness settings:</p>
+            <div class="harness-grid">
+                <article><span>S1</span>
+                    <h3>Single-view</h3>
+                    <p>One fixed image</p>
+                </article>
+                <article><span>S2</span>
+                    <h3>Multi-view</h3>
+                    <p>Four fixed views</p>
+                </article>
+                <article class="accent"><span>S3</span>
+                    <h3>Active Visual</h3>
+                    <p>Agent-selected views</p>
+                </article>
+                <article class="accent"><span>S4</span>
+                    <h3>Full 3D Interaction</h3>
+                    <p>Agent-selected views + geometric queries</p>
+                </article>
+            </div>
+        </section>
+        <!-- 5. ARCHITECTURE -->
+        <section class="section section-soft" id="architecture">
+            <div class="container">
+                <h2>Pipeline</h2>
+                <figure class="wide-figure-wrap">
+                    <img alt="Agentic 3D reconstruction pipeline" class="wide-figure"
+                        src="assets/figures/pipeline.png" />
+                    <figcaption>The agent acquires target evidence, updates a Blender Python program,
+                        executes it, renders the current reconstruction, and self-corrects iteratively. Blender MCP
+                        tools are
+                        available only in the S3 and S4 settings; Full 3D Interaction additionally exposes target-side
+                        geometric queries.</figcaption>
+                </figure>
+            </div>
+        </section>
+        <!-- 6. RESULTS -->
+        <section class="section container" id="results">
+            <h2>Results</h2>
+            <p class="section-intro">Across 100 targets, seven frontier VLM agents, and four target-access settings,
+                richer access generally improves reconstruction quality—but the gains depend strongly on the agent.</p>
+            <div class="result-summary">
+                <div><b>100</b><span>target categories</span></div>
+                <div><b>7</b><span>frontier agents</span></div>
+                <div><b>4</b><span>harness settings</span></div>
+                <div><b>0.927</b><span>best Full-3D Uni3D</span></div>
+            </div>
+            <h3 class="subhead">Main Results</h3>
+            <div class="two-col">
+                <figure class="figure-card uni3d-interactive-figure">
+                    <div class="uni3d-chart" id="uni3dHarnessChart"
+                        aria-label="Interactive scatter plot of absolute Uni3D score and relative improvement over Single-view">
+                        <div class="uni3d-chart-topbar">
+                            <span class="uni3d-chart-hint">Click settings to show/hide · hover or click an agent to
+                                focus</span>
+                            <button class="uni3d-reset" id="uni3dReset" type="button">Reset</button>
+                        </div>
+                        <div class="uni3d-chart-stage">
+                            <svg class="uni3d-svg" id="uni3dSvg" viewBox="0 0 960 560" role="img"
+                                aria-labelledby="uni3dChartTitle uni3dChartDesc">
+                                <title id="uni3dChartTitle">Uni3D performance across harness settings</title>
+                                <desc id="uni3dChartDesc">Absolute Uni3D score on the horizontal axis and relative
+                                    improvement over Single-view on the vertical axis. Settings can be toggled and
+                                    agents can be highlighted.</desc>
+                            </svg>
+                            <div class="uni3d-setting-legend" id="uni3dSettingLegend" role="group"
+                                aria-label="Harness settings"></div>
+                            <div class="uni3d-tooltip" id="uni3dTooltip" role="status" aria-live="polite" hidden></div>
+                        </div>
+                        <div class="uni3d-agent-filter" id="uni3dAgentFilter" role="group" aria-label="Agent focus">
+                        </div>
+                    </div>
+                    <noscript><img src="assets/figures/uni3d_harness.png" /></noscript>
+                    <figcaption>Uni3D 3D–3D similarity relative to Single-view (S1).</figcaption>
+                </figure>
+                <!-- <div class="key-findings">
+                    <p><b>Multi-view helps consistently.</b> Four fixed views improve geometry over Single-view for all
+                        seven agents.</p>
+                    <p><b>Active Visual is the sharpest discriminator.</b> Multi-view → Active Visual ranges from
+                        <strong>+16.4%</strong> (Opus 5) to <strong>−16.5%</strong> (MiniMax M3) in Uni3D.
+                    </p>
+                    <p><b>Full 3D Interaction gives every agent its best geometry.</b> Opus 5 reaches Uni3D
+                        <strong>0.927</strong> and Chamfer <strong>0.002</strong>.
+                    </p>
+                </div> -->
+            </div>
+            <div class="main-results-card">
+                <!-- <div class="main-results-head">
+                    <h4>Complete reconstruction metrics</h4>
+                    <span>4 harness settings × 7 agents</span>
+                </div> -->
+                <div class="table-scroll main-results-scroll">
+                    <table class="main-results-table">
+                        <thead>
+                            <tr>
+                                <th>Agent</th>
+                                <th>SigLIP-2 ↑</th>
+                                <th>DINOv2 ↑</th>
+                                <th>DINOv3 ↑</th>
+                                <th>Chamfer ↓</th>
+                                <th>Uni3D ↑</th>
+                                <th>Uni3D I-3D ↑</th>
+                                <th>Betti L1 ↓</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="setting-row setting-single">
+                                <td colspan="8"><span>S1</span> Single-view <small>one fixed observation</small></td>
+                            </tr>
+                            <tr>
+                                <td>Fable 5</td>
+                                <td>0.913</td>
+                                <td>0.731</td>
+                                <td>0.784</td>
+                                <td>0.012</td>
+                                <td>0.733</td>
+                                <td>0.340</td>
+                                <td>0.815</td>
+                            </tr>
+                            <tr>
+                                <td>Opus 5</td>
+                                <td>0.910</td>
+                                <td>0.704</td>
+                                <td>0.764</td>
+                                <td>0.015</td>
+                                <td>0.725</td>
+                                <td>0.340</td>
+                                <td>0.830</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-5.6 Sol</td>
+                                <td><b>0.915</b></td>
+                                <td>0.714</td>
+                                <td>0.783</td>
+                                <td>0.016</td>
+                                <td>0.715</td>
+                                <td>0.332</td>
+                                <td>1.000</td>
+                            </tr>
+                            <tr>
+                                <td>Kimi K3</td>
+                                <td>0.896</td>
+                                <td>0.664</td>
+                                <td>0.734</td>
+                                <td>0.020</td>
+                                <td>0.678</td>
+                                <td>0.332</td>
+                                <td>0.893</td>
+                            </tr>
+                            <tr>
+                                <td>Qwen 3.8 Max</td>
+                                <td>0.913</td>
+                                <td><b>0.731</b></td>
+                                <td>0.777</td>
+                                <td>0.017</td>
+                                <td><b>0.740</b></td>
+                                <td><b>0.346</b></td>
+                                <td>0.835</td>
+                            </tr>
+                            <tr>
+                                <td>Gemini 3.1 Pro</td>
+                                <td>0.904</td>
+                                <td>0.692</td>
+                                <td>0.756</td>
+                                <td>0.016</td>
+                                <td>0.728</td>
+                                <td>0.335</td>
+                                <td><b>0.776</b></td>
+                            </tr>
+                            <tr>
+                                <td>MiniMax M3</td>
+                                <td>0.833</td>
+                                <td>0.490</td>
+                                <td>0.576</td>
+                                <td>0.028</td>
+                                <td>0.495</td>
+                                <td>0.263</td>
+                                <td>0.921</td>
+                            </tr>
+                            <tr class="setting-row setting-multi">
+                                <td colspan="8"><span>S2</span> Multi-view <small>four fixed views</small></td>
+                            </tr>
+                            <tr>
+                                <td>Fable 5</td>
+                                <td><b>0.927</b></td>
+                                <td>0.760</td>
+                                <td>0.811</td>
+                                <td><b>0.011</b></td>
+                                <td>0.764</td>
+                                <td><b>0.345</b></td>
+                                <td>0.805</td>
+                            </tr>
+                            <tr>
+                                <td>Opus 5</td>
+                                <td>0.921</td>
+                                <td>0.738</td>
+                                <td>0.796</td>
+                                <td><b>0.011</b></td>
+                                <td>0.748</td>
+                                <td>0.343</td>
+                                <td>0.931</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-5.6 Sol</td>
+                                <td>0.925</td>
+                                <td><b>0.764</b></td>
+                                <td><b>0.816</b></td>
+                                <td>0.015</td>
+                                <td>0.745</td>
+                                <td>0.326</td>
+                                <td>1.000</td>
+                            </tr>
+                            <tr>
+                                <td>Kimi K3</td>
+                                <td>0.909</td>
+                                <td>0.702</td>
+                                <td>0.765</td>
+                                <td>0.014</td>
+                                <td>0.713</td>
+                                <td>0.338</td>
+                                <td>0.925</td>
+                            </tr>
+                            <tr>
+                                <td>Qwen 3.8 Max</td>
+                                <td>0.920</td>
+                                <td>0.753</td>
+                                <td>0.805</td>
+                                <td><b>0.011</b></td>
+                                <td><b>0.768</b></td>
+                                <td>0.344</td>
+                                <td>0.768</td>
+                            </tr>
+                            <tr>
+                                <td>Gemini 3.1 Pro</td>
+                                <td>0.908</td>
+                                <td>0.700</td>
+                                <td>0.774</td>
+                                <td>0.015</td>
+                                <td>0.753</td>
+                                <td>0.331</td>
+                                <td><b>0.736</b></td>
+                            </tr>
+                            <tr>
+                                <td>MiniMax M3</td>
+                                <td>0.847</td>
+                                <td>0.522</td>
+                                <td>0.617</td>
+                                <td>0.022</td>
+                                <td>0.577</td>
+                                <td>0.299</td>
+                                <td>0.983</td>
+                            </tr>
+                            <tr class="setting-row setting-active">
+                                <td colspan="8"><span>S3</span> Active Visual <small>agent-selected views</small></td>
+                            </tr>
+                            <tr>
+                                <td>Fable 5</td>
+                                <td>0.932</td>
+                                <td>0.767</td>
+                                <td>0.822</td>
+                                <td>0.006</td>
+                                <td>0.832</td>
+                                <td><b>0.349</b></td>
+                                <td>0.663</td>
+                            </tr>
+                            <tr>
+                                <td>Opus 5</td>
+                                <td><b>0.939</b></td>
+                                <td><b>0.796</b></td>
+                                <td><b>0.843</b></td>
+                                <td><b>0.004</b></td>
+                                <td><b>0.871</b></td>
+                                <td>0.347</td>
+                                <td><b>0.611</b></td>
+                            </tr>
+                            <tr>
+                                <td>GPT-5.6 Sol</td>
+                                <td>0.931</td>
+                                <td>0.760</td>
+                                <td>0.817</td>
+                                <td>0.007</td>
+                                <td>0.823</td>
+                                <td>0.342</td>
+                                <td>0.864</td>
+                            </tr>
+                            <tr>
+                                <td>Kimi K3</td>
+                                <td>0.925</td>
+                                <td>0.740</td>
+                                <td>0.802</td>
+                                <td>0.005</td>
+                                <td>0.819</td>
+                                <td>0.336</td>
+                                <td>0.685</td>
+                            </tr>
+                            <tr>
+                                <td>Qwen 3.8 Max</td>
+                                <td>0.919</td>
+                                <td>0.729</td>
+                                <td>0.789</td>
+                                <td>0.006</td>
+                                <td>0.809</td>
+                                <td>0.331</td>
+                                <td>0.711</td>
+                            </tr>
+                            <tr>
+                                <td>Gemini 3.1 Pro</td>
+                                <td>0.865</td>
+                                <td>0.600</td>
+                                <td>0.674</td>
+                                <td>0.015</td>
+                                <td>0.691</td>
+                                <td>0.315</td>
+                                <td>0.853</td>
+                            </tr>
+                            <tr>
+                                <td>MiniMax M3</td>
+                                <td>0.808</td>
+                                <td>0.447</td>
+                                <td>0.527</td>
+                                <td>0.034</td>
+                                <td>0.482</td>
+                                <td>0.250</td>
+                                <td>0.974</td>
+                            </tr>
+                            <tr class="setting-row setting-full">
+                                <td colspan="8"><span>S4</span> Full 3D Interaction <small>views + geometric
+                                        queries</small></td>
+                            </tr>
+                            <tr>
+                                <td>Fable 5</td>
+                                <td>0.949</td>
+                                <td>0.818</td>
+                                <td>0.859</td>
+                                <td>0.003</td>
+                                <td>0.884</td>
+                                <td>0.345</td>
+                                <td>0.557</td>
+                            </tr>
+                            <tr>
+                                <td>Opus 5</td>
+                                <td><b>0.957</b></td>
+                                <td><b>0.842</b></td>
+                                <td><b>0.883</b></td>
+                                <td><b>0.002</b></td>
+                                <td><b>0.927</b></td>
+                                <td><b>0.347</b></td>
+                                <td><b>0.473</b></td>
+                            </tr>
+                            <tr>
+                                <td>GPT-5.6 Sol</td>
+                                <td>0.939</td>
+                                <td>0.788</td>
+                                <td>0.841</td>
+                                <td>0.003</td>
+                                <td>0.879</td>
+                                <td>0.342</td>
+                                <td>0.677</td>
+                            </tr>
+                            <tr>
+                                <td>Kimi K3</td>
+                                <td>0.929</td>
+                                <td>0.747</td>
+                                <td>0.809</td>
+                                <td>0.004</td>
+                                <td>0.848</td>
+                                <td>0.339</td>
+                                <td>0.749</td>
+                            </tr>
+                            <tr>
+                                <td>Qwen 3.8 Max</td>
+                                <td>0.934</td>
+                                <td>0.763</td>
+                                <td>0.822</td>
+                                <td>0.004</td>
+                                <td>0.857</td>
+                                <td>0.339</td>
+                                <td>0.750</td>
+                            </tr>
+                            <tr>
+                                <td>Gemini 3.1 Pro</td>
+                                <td>0.901</td>
+                                <td>0.694</td>
+                                <td>0.759</td>
+                                <td>0.008</td>
+                                <td>0.783</td>
+                                <td>0.322</td>
+                                <td>0.588</td>
+                            </tr>
+                            <tr>
+                                <td>MiniMax M3</td>
+                                <td>0.857</td>
+                                <td>0.578</td>
+                                <td>0.651</td>
+                                <td>0.014</td>
+                                <td>0.679</td>
+                                <td>0.302</td>
+                                <td>0.821</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="table-note">Bold marks the best displayed value within each setting. ↑ higher is better; ↓
+                    lower is better.</p>
+            </div>
+            <h3 class="subhead">Geometric Grounding Analysis</h3>
+            <div class="three-cards">
+                <article class="metric-card">
+                    <h4>Pose / Grid Ablation</h4>
+                    <ul>
+                        <li>Pose: provide additional camera pose information for each view.</li>
+                        <li>Grid: provide background grid for each view rendering.</li>
+                    </ul>
+                </article>
+                <article class="metric-card">
+                    <h4>Explicit Measurements Ablation</h4>
+                    <ul>
+                        <li>Global: provide global measurements (e.g., bounding box, volume, surface area).</li>
+                        <li>Parts: provide part-level measurements (e.g., part centers, dimensions, components,
+                            repetition statistics).</li>
+                    </ul>
+                </article>
+            </div>
+            <div class="compact-tables">
+                <div class="mini-table-card">
+                    <h4>Pose / Grid Ablation · GPT-5.6 Sol</h4>
+                    <table class="mini-table">
+                        <thead>
+                            <tr>
+                                <th>Setting</th>
+                                <th>SigLIP-2 ↑</th>
+                                <th>Chamfer ↓</th>
+                                <th>Uni3D ↑</th>
+                                <th>Betti L1 ↓</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Baseline</td>
+                                <td>0.9254</td>
+                                <td>0.0199</td>
+                                <td>0.7038</td>
+                                <td>0.7567</td>
+                            </tr>
+                            <tr>
+                                <td>+ Grid</td>
+                                <td>0.9321</td>
+                                <td>0.0172</td>
+                                <td>0.8351</td>
+                                <td>0.7487</td>
+                            </tr>
+                            <tr class="best">
+                                <td>+ Pose</td>
+                                <td>0.9419</td>
+                                <td>0.0077</td>
+                                <td>0.8387</td>
+                                <td>0.8071</td>
+                            </tr>
+                            <tr>
+                                <td>+ Grid + Pose</td>
+                                <td>0.9391</td>
+                                <td>0.0110</td>
+                                <td>0.8098</td>
+                                <td>0.9104</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mini-table-card">
+                    <h4>Explicit Measurements · Opus 5</h4>
+                    <table class="mini-table">
+                        <thead>
+                            <tr>
+                                <th>Setting</th>
+                                <th>SigLIP-2 ↑</th>
+                                <th>Chamfer ↓</th>
+                                <th>Uni3D ↑</th>
+                                <th>Betti L1 ↓</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Images</td>
+                                <td>0.9173</td>
+                                <td>0.0150</td>
+                                <td>0.8133</td>
+                                <td>0.9050</td>
+                            </tr>
+                            <tr>
+                                <td>+ Global</td>
+                                <td>0.9309</td>
+                                <td>0.0103</td>
+                                <td>0.8088</td>
+                                <td>0.7093</td>
+                            </tr>
+                            <tr class="best">
+                                <td>+ Parts</td>
+                                <td>0.9256</td>
+                                <td>0.0099</td>
+                                <td>0.8557</td>
+                                <td>0.4186</td>
+                            </tr>
+                            <tr>
+                                <td>+ Global + Parts</td>
+                                <td>0.9307</td>
+                                <td>0.0084</td>
+                                <td>0.8296</td>
+                                <td>0.5783</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <h3 class="subhead">Active Visual Anlysis</h3>
+            <p class="small-lead">In the Active Visual setting, agent's inspection involves a combination of observation
+                quality and acquisition
+                strategy.</p>
+            <div class="two-col align-start">
+                <figure class="figure-card"><img alt="Active Visual inspection behavior"
+                        src="assets/figures/agent_inspection.png" />
+                    <figcaption>Gemini 3.1 Pro performs relatively few inspections, while MiniMax M3 performs many
+                        inspections but produces
+                        lower-quality observations. Both Opus 5 and GPT-5.6 Sol demonstrate strong inspection behavior.
+                        Opus 5, in particular,
+                        even attempts to inspect the interior of an object by using camera clipping.
+                    </figcaption>
+                </figure>
+            </div>
+            <h3 class="subhead">Initialization and Self-correction Capabilities Comparison</h3>
+            <p class="small-lead">We compare the initial reconstruction and the final reconstruction after
+                self-correction for each agent
+                under Full 3D Interaction.</p>
+            <div class="two-col align-start">
+                <figure class="figure-card"><img alt="Initial reconstruction vs refinement gain"
+                        src="assets/figures/initial_final.png" />
+                    <figcaption>Opus/Fable initialize strongly; MiniMax improves most from a weak initialization; Qwen
+                        shows
+                        both strong initial performance and self-correction.</figcaption>
+                </figure>
+                <figure class="figure-card"><img alt="Reconstruction trajectories"
+                        src="assets/figures/trajectories.png" />
+                    <figcaption>An example of different agents reconstruction trajectories under Full 3D
+                        Interaction. vn denotes the version n reconstruction.</figcaption>
+                </figure>
+            </div>
+            <h3 class="subhead">Interaction Efficiency</h3>
+            <p class="small-lead">Different harness settings reveal large differences in model calls, MCP calls,
+                reconstruction versions, latency, and cost.</p>
+
+            <div class="main-results-card efficiency-results-card">
+                <div class="main-results-head">
+                    <table class="main-results-table efficiency-results-table">
+                        <thead>
+                            <tr>
+                                <th>Agent</th>
+                                <th>API Calls</th>
+                                <th>MCP Calls</th>
+                                <th>Versions</th>
+                                <th>Output Tokens ↓</th>
+                                <th>Cost ↓</th>
+                                <th>Latency (s) ↓</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="setting-row setting-single">
+                                <td colspan="7"><span>S1</span> Single-view <small>fixed image</small></td>
+                            </tr>
+                            <tr>
+                                <td>Fable 5</td>
+                                <td>11</td>
+                                <td>–</td>
+                                <td>4.14</td>
+                                <td>51,846</td>
+                                <td>2.00</td>
+                                <td>382</td>
+                            </tr>
+                            <tr>
+                                <td>Opus 5</td>
+                                <td>12</td>
+                                <td>–</td>
+                                <td>4.32</td>
+                                <td>101,440</td>
+                                <td>2.04</td>
+                                <td>780</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-5.6 Sol</td>
+                                <td>4</td>
+                                <td>–</td>
+                                <td>4.00</td>
+                                <td>30,856</td>
+                                <td>1.26*</td>
+                                <td>664</td>
+                            </tr>
+                            <tr>
+                                <td>Kimi K3</td>
+                                <td>15</td>
+                                <td>–</td>
+                                <td>4.39</td>
+                                <td>28,199</td>
+                                <td>–</td>
+                                <td>928</td>
+                            </tr>
+                            <tr>
+                                <td>Qwen 3.8 Max</td>
+                                <td>4</td>
+                                <td>–</td>
+                                <td>4.41</td>
+                                <td>39,959</td>
+                                <td>–</td>
+                                <td>758</td>
+                            </tr>
+                            <tr>
+                                <td>Gemini 3.1 Pro</td>
+                                <td>4</td>
+                                <td>–</td>
+                                <td>4.57</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>429</td>
+                            </tr>
+                            <tr>
+                                <td>MiniMax M3</td>
+                                <td>6</td>
+                                <td>–</td>
+                                <td>6.65</td>
+                                <td>16,640</td>
+                                <td>–</td>
+                                <td>217</td>
+                            </tr>
+                            <tr class="setting-row setting-multi">
+                                <td colspan="7"><span>S2</span> Multi-view <small>4 fixed views</small></td>
+                            </tr>
+                            <tr>
+                                <td>Fable 5</td>
+                                <td>33</td>
+                                <td>–</td>
+                                <td>4.11</td>
+                                <td>68,625</td>
+                                <td>2.54</td>
+                                <td>428</td>
+                            </tr>
+                            <tr>
+                                <td>Opus 5</td>
+                                <td>34</td>
+                                <td>–</td>
+                                <td>4.19</td>
+                                <td>130,053</td>
+                                <td>2.55</td>
+                                <td>946</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-5.6 Sol</td>
+                                <td>4</td>
+                                <td>–</td>
+                                <td>4.00</td>
+                                <td>34,308</td>
+                                <td>1.47*</td>
+                                <td>744</td>
+                            </tr>
+                            <tr>
+                                <td>Kimi K3</td>
+                                <td>18</td>
+                                <td>–</td>
+                                <td>4.70</td>
+                                <td>30,410</td>
+                                <td>–</td>
+                                <td>1,065</td>
+                            </tr>
+                            <tr>
+                                <td>Qwen 3.8 Max</td>
+                                <td>4</td>
+                                <td>–</td>
+                                <td>4.24</td>
+                                <td>41,173</td>
+                                <td>–</td>
+                                <td>935</td>
+                            </tr>
+                            <tr>
+                                <td>Gemini 3.1 Pro</td>
+                                <td>4</td>
+                                <td>–</td>
+                                <td>4.56</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>587</td>
+                            </tr>
+                            <tr>
+                                <td>MiniMax M3</td>
+                                <td>6</td>
+                                <td>–</td>
+                                <td>6.81</td>
+                                <td>18,652</td>
+                                <td>–</td>
+                                <td>356</td>
+                            </tr>
+                            <tr class="setting-row setting-active">
+                                <td colspan="7"><span>S3</span> Active Visual <small>agent-selected views</small></td>
+                            </tr>
+                            <tr>
+                                <td>Fable 5</td>
+                                <td>58</td>
+                                <td>51</td>
+                                <td>7.21</td>
+                                <td>153,361</td>
+                                <td>7.93</td>
+                                <td>860</td>
+                            </tr>
+                            <tr>
+                                <td>Opus 5</td>
+                                <td>116</td>
+                                <td>87</td>
+                                <td>17.20</td>
+                                <td>328,147</td>
+                                <td>10.74</td>
+                                <td>1,790</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-5.6 Sol</td>
+                                <td>55</td>
+                                <td>69</td>
+                                <td>15.09</td>
+                                <td>45,004</td>
+                                <td>3.24*</td>
+                                <td>939</td>
+                            </tr>
+                            <tr>
+                                <td>Kimi K3</td>
+                                <td>114</td>
+                                <td>41</td>
+                                <td>12.61</td>
+                                <td>53,444</td>
+                                <td>–</td>
+                                <td>2,370</td>
+                            </tr>
+                            <tr>
+                                <td>Qwen 3.8 Max</td>
+                                <td>393</td>
+                                <td>55</td>
+                                <td>11.63</td>
+                                <td>341,310</td>
+                                <td>–</td>
+                                <td>5,400</td>
+                            </tr>
+                            <tr>
+                                <td>Gemini 3.1 Pro</td>
+                                <td>43</td>
+                                <td>37</td>
+                                <td>10.59</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>469</td>
+                            </tr>
+                            <tr>
+                                <td>MiniMax M3</td>
+                                <td>431</td>
+                                <td>156</td>
+                                <td>23.87</td>
+                                <td>115,309</td>
+                                <td>–</td>
+                                <td>6,287</td>
+                            </tr>
+                            <tr class="setting-row setting-full">
+                                <td colspan="7"><span>S4</span> Full 3D Interaction <small>views + geometric
+                                        queries</small></td>
+                            </tr>
+                            <tr>
+                                <td>Fable 5</td>
+                                <td>42</td>
+                                <td>18</td>
+                                <td>7.44</td>
+                                <td>154,278</td>
+                                <td>6.52</td>
+                                <td>1,064</td>
+                            </tr>
+                            <tr>
+                                <td>Opus 5</td>
+                                <td>80</td>
+                                <td>34</td>
+                                <td>15.18</td>
+                                <td>380,011</td>
+                                <td>7.92</td>
+                                <td>1,962</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-5.6 Sol</td>
+                                <td>70</td>
+                                <td>35</td>
+                                <td>12.31</td>
+                                <td>50,484</td>
+                                <td>4.54*</td>
+                                <td>1,344</td>
+                            </tr>
+                            <tr>
+                                <td>Kimi K3</td>
+                                <td>75</td>
+                                <td>25</td>
+                                <td>11.72</td>
+                                <td>54,086</td>
+                                <td>–</td>
+                                <td>2,460</td>
+                            </tr>
+                            <tr>
+                                <td>Qwen 3.8 Max</td>
+                                <td>257</td>
+                                <td>51</td>
+                                <td>8.88</td>
+                                <td>456,831</td>
+                                <td>–</td>
+                                <td>8,206</td>
+                            </tr>
+                            <tr>
+                                <td>Gemini 3.1 Pro</td>
+                                <td>38</td>
+                                <td>22</td>
+                                <td>6.45</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td><b>448</b></td>
+                            </tr>
+                            <tr>
+                                <td>MiniMax M3</td>
+                                <td>172</td>
+                                <td>67</td>
+                                <td>10.59</td>
+                                <td>76,278</td>
+                                <td>–</td>
+                                <td>1,905</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="table-note">Betti-number errors are normalized L1 components (↓). Cost is the CLI-reported
+                    session cost where available; * denotes token-based estimates. “–” means not reported or not
+                    applicable.</p>
+            </div>
+
+            <h3 class="subhead">VLM-based perceptual evaluation</h3>
+            <div class="two-col">
+                <figure class="figure-card"><img alt="VLM-based hexagonal evaluation" src="assets/figures/hexal.png" />
+                    <figcaption>Six-criterion evaluation of Full 3D Interaction reconstructions by Gemini 3.1 Pro.
+                    </figcaption>
+                </figure>
+
+            </div>
+        </section>
+        <!-- 7. BIBTEX -->
+        <section class="section section-soft" id="bibtex">
+            <div class="container">
+                <h2>BibTeX</h2>
+                <div class="bib-wrap">
+
+                    <button class="copy-btn" id="copyBib">Copy</button>
+                </div>
+                <p class="footer-note">Project page for 3DHarnessBench. Paper / code / benchmark links can be set in
+                    <code>config.js</code>.
+                </p>
+            </div>
+        </section>
+    </main>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

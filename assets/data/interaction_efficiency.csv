@@ -1,0 +1,29 @@
+Harness,Agent,Beta0,Beta1,Beta2,API Calls,MCP API Calls,Versions,Output Tokens,Cost,Latency (s)
+Single-view,Fable 5,0.105,0.021,0.255,11,,4.14,51846,2.0,382
+Single-view,Opus 5,0.14,0.074,0.25,12,,4.32,101440,2.04,780
+Single-view,GPT-5.6 Sol,0.333,0.097,0.431,4,,4,30856,1.26,664
+Single-view,Kimi K3,0.233,0.077,0.318,15,,4.39,28199,,928
+Single-view,Qwen 3.8 Max,0.098,0.042,0.262,4,,4.41,39959,,758
+Single-view,Gemini 3.1 Pro,0.125,0.06,0.248,4,,4.57,,,429
+Single-view,MiniMax M3,0.198,0.225,0.36,6,,6.65,16640,,217
+Multi-view,Fable 5,0.108,0.061,0.241,33,,4.11,68625,2.54,428
+Multi-view,Opus 5,0.167,0.06,0.338,34,,4.19,130053,2.55,946
+Multi-view,GPT-5.6 Sol,0.335,0.073,0.387,4,,4,34308,1.47,744
+Multi-view,Kimi K3,0.203,0.066,0.282,18,,4.7,30410,,1065
+Multi-view,Qwen 3.8 Max,0.102,0.04,0.204,4,,4.24,41173,,935
+Multi-view,Gemini 3.1 Pro,0.128,0.07,0.231,4,,4.56,,,587
+Multi-view,MiniMax M3,0.228,0.158,0.361,6,,6.81,18652,,356
+Active Visual,Fable 5,0.146,0.021,0.098,58,51,7.21,153361,7.93,860
+Active Visual,Opus 5,0.095,0.018,0.155,116,87,17.2,328147,10.74,1790
+Active Visual,GPT-5.6 Sol,0.158,0.08,0.272,55,69,15.09,45004,3.24,939
+Active Visual,Kimi K3,0.089,0.009,0.163,114,41,12.61,53444,,2370
+Active Visual,Qwen 3.8 Max,0.125,0.041,0.167,393,55,11.63,341310,,5400
+Active Visual,Gemini 3.1 Pro,0.07,0.024,0.209,43,37,10.59,,,469
+Active Visual,MiniMax M3,0.167,0.149,0.333,431,156,23.87,115309,,6287
+Full 3D Interaction,Fable 5,0.043,0.005,0.085,42,18,7.44,154278,6.52,1064
+Full 3D Interaction,Opus 5,0.015,0.015,0.058,80,34,15.18,380011,7.92,1962
+Full 3D Interaction,GPT-5.6 Sol,0.09,0.006,0.139,70,35,12.31,50484,4.54,1344
+Full 3D Interaction,Kimi K3,0.04,0.017,0.176,75,25,11.72,54086,,2460
+Full 3D Interaction,Qwen 3.8 Max,0.058,0.031,0.198,257,51,8.88,456831,,8206
+Full 3D Interaction,Gemini 3.1 Pro,0.036,0.006,0.083,38,22,6.45,,,448
+Full 3D Interaction,MiniMax M3,0.113,0.058,0.25,172,67,10.59,76278,,1905

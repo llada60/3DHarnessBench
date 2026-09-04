@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4957f2"/><stop offset="0.52" stop-color="#6f59e8"/><stop offset="1" stop-color="#9850c9"/></linearGradient></defs>
+<rect width="256" height="256" rx="42" fill="#fff"/>
+<!-- stylized 3D H mark, matched to the supplied p1 -->
+<path d="M49 67 L84 47 L84 105 L132 78 L132 34 L167 14 L167 58 L205 36 L205 169 L170 189 L170 134 L122 162 L122 208 L87 228 L87 183 L49 205 Z" fill="url(#g)"/>
+<path d="M84 105 L122 127 L170 100 L205 120 L170 140 L122 168 L84 146 L49 125 Z" fill="#5a57eb" opacity=".92"/>
+<path d="M49 67 L84 88 L84 146 L49 125 Z" fill="#8451d5"/>
+<path d="M132 78 L170 100 L170 140 L132 118 Z" fill="#7a54dc"/>
+</svg>
