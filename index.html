@@ -137,31 +137,45 @@
             </div>
             <h3 class="subhead">Main Results</h3>
             <div class="two-col">
-                <figure class="figure-card uni3d-interactive-figure">
+                <figure class="figure-card uni3d-interactive-figure" style="width: 90%; margin: 0 auto;">
                     <div class="uni3d-chart" id="uni3dHarnessChart"
                         aria-label="Interactive scatter plot of absolute Uni3D score and relative improvement over Single-view">
                         <div class="uni3d-chart-topbar">
-                            <span class="uni3d-chart-hint">Click settings to show/hide · hover or click an agent to
-                                focus</span>
+                            <span class="uni3d-chart-hint">
+                                Click settings to show/hide · hover or click an agent to focus
+                            </span>
                             <button class="uni3d-reset" id="uni3dReset" type="button">Reset</button>
                         </div>
+
                         <div class="uni3d-chart-stage">
                             <svg class="uni3d-svg" id="uni3dSvg" viewBox="0 0 960 560" role="img"
                                 aria-labelledby="uni3dChartTitle uni3dChartDesc">
                                 <title id="uni3dChartTitle">Uni3D performance across harness settings</title>
-                                <desc id="uni3dChartDesc">Absolute Uni3D score on the horizontal axis and relative
-                                    improvement over Single-view on the vertical axis. Settings can be toggled and
-                                    agents can be highlighted.</desc>
+                                <desc id="uni3dChartDesc">
+                                    Absolute Uni3D score on the horizontal axis and relative improvement over
+                                    Single-view on the
+                                    vertical axis.
+                                    Settings can be toggled and agents can be highlighted.
+                                </desc>
                             </svg>
+
                             <div class="uni3d-setting-legend" id="uni3dSettingLegend" role="group"
                                 aria-label="Harness settings"></div>
+
                             <div class="uni3d-tooltip" id="uni3dTooltip" role="status" aria-live="polite" hidden></div>
                         </div>
+
                         <div class="uni3d-agent-filter" id="uni3dAgentFilter" role="group" aria-label="Agent focus">
                         </div>
                     </div>
-                    <noscript><img src="assets/figures/uni3d_harness.png" /></noscript>
-                    <figcaption>Uni3D 3D–3D similarity relative to Single-view (S1).</figcaption>
+
+                    <noscript>
+                        <img src="assets/figures/uni3d_harness.png" />
+                    </noscript>
+
+                    <figcaption>
+                        Uni3D 3D–3D similarity relative to Single-view (S1).
+                    </figcaption>
                 </figure>
                 <!-- <div class="key-findings">
                     <p><b>Multi-view helps consistently.</b> Four fixed views improve geometry over Single-view for all
@@ -494,7 +508,7 @@
                     lower is better.</p>
             </div>
             <h3 class="subhead">Geometric Grounding Analysis</h3>
-            <div class="three-cards">
+            <div class="three-cards" style="margin: 0 auto;">
                 <article class="metric-card">
                     <h4>Pose / Grid Ablation</h4>
                     <ul>
@@ -606,8 +620,8 @@
                 quality and acquisition
                 strategy.</p>
             <div class="two-col align-start">
-                <figure class="figure-card"><img alt="Active Visual inspection behavior"
-                        src="assets/figures/agent_inspection.png" />
+                <figure class="figure-card" style="width: 90%; margin: 0 auto;">
+                    <img alt="Active Visual inspection behavior" src="assets/figures/agent_inspection.png" />
                     <figcaption>Gemini 3.1 Pro acquires few inspections, while MiniMax M3 acquires many
                         inspections but produces
                         lower-quality observations. Both Opus 5 and GPT-5.6 Sol demonstrate strong inspection behavior.
@@ -621,14 +635,14 @@
                 self-correction for each agent
                 under Full 3D Interaction.</p>
             <div class="two-col align-start">
-                <figure class="figure-card"><img alt="Initial reconstruction vs refinement gain"
-                        src="assets/figures/initial_final.png" />
+                <figure class="figure-card" style="width: 90%; margin: 0 auto;">
+                    <img alt="Initial reconstruction vs refinement gain" src="assets/figures/initial_final.png" />
                     <figcaption>Opus/Fable initialize strongly; MiniMax improves most from a weak initialization; Qwen
                         shows
                         both strong initial performance and self-correction.</figcaption>
                 </figure>
-                <figure class="figure-card"><img alt="Reconstruction trajectories"
-                        src="assets/figures/trajectories.png" />
+                <figure class="figure-card" style="width: 90%; margin: 0 auto;">
+                    <img alt="Reconstruction trajectories" src="assets/figures/trajectories.png" />
                     <figcaption>An example of different agents reconstruction trajectories under Full 3D
                         Interaction. vn denotes the version n reconstruction.</figcaption>
                 </figure>
@@ -927,8 +941,11 @@
 
             <h3 class="subhead">VLM-based perceptual evaluation</h3>
             <div class="two-col">
-                <figure class="figure-card"><img alt="VLM-based hexagonal evaluation" src="assets/figures/hexal.png" />
-                    <figcaption>Six-criterion evaluation of Full 3D Interaction reconstructions by Gemini 3.1 Pro.
+                <figure class="figure-card"><img alt="VLM-based hexagonal evaluation"
+                        style="width: 60%; height: auto; margin: 0 auto;" src="assets/figures/hexal.png" />
+                    <figcaption>Six-criterion evaluation by Gemini 3.1 Pro of Full 3D Interaction reconstructions,
+                        comparing reconstructed renders
+                        against ground-truth renders.
                     </figcaption>
                 </figure>
 
