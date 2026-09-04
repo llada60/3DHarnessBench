@@ -3,12 +3,13 @@
 Static project page following the section order of the SceneGen project page:
 
 1. Hero / title / authors / links
-2. Abstract
+2. TL;DR and Abstract
 3. Interactive Results Gallery
 4. Overview
 5. Architecture
 6. Results
-7. BibTeX
+7. Acknowledgements
+8. BibTeX
 
 ## GitHub Pages
 
