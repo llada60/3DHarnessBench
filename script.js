@@ -1,7 +1,14 @@
 const links=window.PROJECT_LINKS||{};
 [['paperLink','paper'],['codeLink','code'],['dataLink','data']].forEach(([id,key])=>{const el=document.getElementById(id);if(el&&links[key]){el.href=links[key];el.classList.remove('disabled');el.removeAttribute('aria-disabled');el.querySelector('span')?.remove();el.target='_blank';el.rel='noopener'}});
 
-document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById('galleryImage').src=btn.dataset.img;document.getElementById('galleryCaption').textContent=btn.dataset.caption}));
+const galleryImage=document.getElementById('galleryImage');
+const galleryCaption=document.getElementById('galleryCaption');
+document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  if(galleryImage&&btn.dataset.img)galleryImage.src=btn.dataset.img;
+  if(galleryCaption&&btn.dataset.caption)galleryCaption.textContent=btn.dataset.caption;
+}));
 
 const mainRows=[
 ['Single-view','Fable 5',.913,.731,.784,.012,.733,.340,.815],['Single-view','Opus 5',.910,.704,.764,.015,.725,.340,.830],['Single-view','GPT-5.6 Sol',.915,.714,.783,.016,.715,.332,1.000],['Single-view','Kimi K3',.896,.664,.734,.020,.678,.332,.893],['Single-view','Qwen 3.8 Max',.913,.731,.777,.017,.740,.346,.835],['Single-view','Gemini 3.1 Pro',.904,.692,.756,.016,.728,.335,.776],['Single-view','MiniMax M3',.833,.490,.576,.028,.495,.263,.921],
@@ -19,7 +26,19 @@ const effHeaders=['Harness','Agent','β0 ↓','β1 ↓','β2 ↓','API Calls','M
 
 function makeTable(id,headers,rows){const table=document.getElementById(id);if(!table)return;const head=table.querySelector('thead'),body=table.querySelector('tbody');head.innerHTML='<tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr>';body.innerHTML=rows.map(r=>'<tr>'+r.map((v,i)=>`<td>${typeof v==='number'?(i>1&&!Number.isInteger(v)?v.toFixed(3):v.toLocaleString()):v}</td>`).join('')+'</tr>').join('')}
 
-document.getElementById('copyBib')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(document.getElementById('bibtexText').innerText);const b=document.getElementById('copyBib');b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)}catch(e){}});
+const copyBib=document.getElementById('copyBib');
+const bibtexText=document.getElementById('bibtexText');
+if(copyBib&&!bibtexText){
+  copyBib.remove();
+}else if(copyBib&&bibtexText){
+  copyBib.addEventListener('click',async()=>{
+    try{
+      await navigator.clipboard.writeText(bibtexText.innerText);
+      copyBib.textContent='Copied';
+      setTimeout(()=>copyBib.textContent='Copy',1200);
+    }catch(e){}
+  });
+}
 
 function initUni3DHarnessChart(){
   const root=document.getElementById('uni3dHarnessChart');
