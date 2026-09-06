@@ -1,0 +1,57 @@
+# VirtualGL (vglrun + GLX/EGL interposer libraries), built from the upstream
+# release tarball. Not packaged on conda-forge (or anywhere conda) — the
+# server-side pieces are usually distributed as .deb/.rpm — but the userspace
+# parts (vglrun, libvglfaker, libdlfaker, vglclient) build cleanly against
+# conda libs and are all the remote-blender stack needs: the EGL back end
+# (`vglrun -d /dev/dri/card1`) requires no vglserver_config and no root, only
+# read access to the DRI device (user in group `video` on this machine).
+schema_version: 1
+
+package:
+  name: virtualgl
+  version: 3.1.4
+
+source:
+  url: https://github.com/VirtualGL/virtualgl/releases/download/3.1.4/VirtualGL-3.1.4.tar.gz
+  sha256: 3c32884f91ffff99e89b8dc3a6e714e2b78b5f7b7c83bc7a379e96ac36950ea7
+
+build:
+  number: 0
+  script: |
+    cmake -S . -B build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=$PREFIX \
+      -DTJPEG_INCLUDE_DIR=$PREFIX/include \
+      -DTJPEG_LIBRARY="-L$PREFIX/lib -lturbojpeg"
+    cmake --build build --parallel ${CPU_COUNT:-8}
+    cmake --install build
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - cmake
+    - ninja
+  host:
+    - libjpeg-turbo
+    - xorg-libx11
+    - xorg-libxext
+    - xorg-libxtst
+    - xorg-libxv
+    - libxcb
+    - xcb-util-keysyms   # xcb/xcb_keysyms.h for the XCB interposer
+    - libglu
+    - libgl-devel
+    - libegl-devel
+    - libglx-devel
+    - libopengl-devel
+    # linux builds enable the OpenCL/GL-interop interposer (vglfaker-opencl)
+    # by default and its CMake references the OpenCL target unconditionally
+    - opencl-headers
+    - ocl-icd
+
+about:
+  homepage: https://virtualgl.org
+  repository: https://github.com/VirtualGL/virtualgl
+  license: LicenseRef-wxWindows
+  summary: GLX/EGL interposer that redirects OpenGL rendering of X11 apps onto a server GPU (vglrun)

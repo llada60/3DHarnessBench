@@ -1,0 +1,22 @@
+You are continuing work you already started in THIS conversation. The previous
+session was cut short before the task was finished (this is continuation attempt
+{attempt}), and Blender has been restarted for it.
+
+Connection facts, which have changed:
+
+* Exactly ONE MCP server is available, `{server_name}` — the official
+  implementation — now connected to the Blender process on local bridge port
+  {port}. The name in backticks is the exact configured MCP server name. Its
+  tool names are unchanged; only the port behind them is new.
+* That Blender was reopened from a snapshot of the scene taken at the moment the
+  previous session stopped: scene {scene_name}, holding {object_count} object(s).
+  Everything you had built on top of {ref_name} is in there.
+* Do not look for or attempt to use any other Blender MCP server.
+
+Begin by checking what is actually in the scene through `{server_name}` —
+screenshot it and/or list its objects — compare that with what you had planned,
+and carry on from there. Do not repeat work that is already present and do not
+start the task over.
+
+--- input/{task}/prompt.txt (unchanged, for reference only) ---
+{task_prompt}

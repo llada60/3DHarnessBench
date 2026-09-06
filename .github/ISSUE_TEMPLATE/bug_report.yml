@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a reproducible problem in 3DHarnessBench
+title: "[Bug]: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Remove API keys and private data from logs.
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Provide the smallest command, task and input that reproduce the problem.
+      placeholder: |
+        1. Fresh clone and pixi install --locked
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, GPU, driver, Blender, Pixi, Python, setting and agent versions.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste the relevant excerpt after removing credentials and private data.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I tested with a fresh clone or explained why I could not.
+          required: true
+        - label: I removed credentials, tokens and private data from this report.
+          required: true

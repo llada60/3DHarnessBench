@@ -1,0 +1,23 @@
+# Reasoning effort defaults for the seven public experiment agents.
+
+[agent.codex]
+thinking_depth = "high"
+
+[agent.qwen3-8-max-preview]
+thinking_depth = "high"
+
+[agent.minimax]
+thinking_depth = "high"
+
+[agent.claude]
+thinking_depth = "high"
+
+[agent.opus]
+thinking_depth = "high"
+
+[agent.agy]
+thinking_depth = "high"
+
+# K3 supports low | high | max.
+[agent.kimi]
+thinking_depth = "high"

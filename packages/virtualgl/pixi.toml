@@ -1,0 +1,9 @@
+# VirtualGL as a pixi source dependency: built by rattler-build (recipe.yaml
+# next to this file) during `pixi install` of the workspace — no manual build
+# step. See [tool.pixi.dependencies].virtualgl in the repo-root pyproject.toml.
+[package]
+name = "virtualgl"
+version = "3.1.4"
+
+[package.build]
+backend = { name = "pixi-build-rattler-build", version = "*" }

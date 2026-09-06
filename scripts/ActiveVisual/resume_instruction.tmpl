@@ -1,0 +1,29 @@
+You are continuing work you already started in THIS conversation. The previous
+session was cut short before the task was finished (this is continuation attempt
+{attempt}), and both Blender instances have been restarted for it.
+
+Read this part carefully, because the connection details are new:
+use the exact MCP server names shown in backticks below.
+
+* `{full_access_server}` — the official Blender MCP workspace, now connected to
+  its Blender bridge on 127.0.0.1:{full_access_port}. It was reopened from a
+  snapshot of your own workspace scene, taken when the previous session
+  stopped: scene {full_access_scene}, holding
+  {full_access_objects} object(s). Everything you had built is in there.
+
+* `{viewport_only_server}` — camera/viewport-only access to the reference model
+  ({ref_name}), now on 127.0.0.1:{viewport_only_port}, scene
+  {viewport_only_scene}. Restored the same way, so its camera is still where you
+  last moved it.
+
+Scenes restored from the snapshot: {restored}.
+
+The tool names are unchanged — keep using those same two servers; only the ports
+behind them are new. Nothing about the task itself changed.
+
+Begin by checking what is actually in the workspace scene: screenshot it and/or
+list its objects through `{full_access_server}`, compare that with what you had
+planned, and carry on from there. Do not repeat work that is already present and
+do not start the task over.
+
+The original task text follows again, for reference only.

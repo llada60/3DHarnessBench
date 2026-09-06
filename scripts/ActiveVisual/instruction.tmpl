@@ -1,0 +1,23 @@
+You are connected to TWO separate Blender instances, each through its own MCP
+server. They are different processes with different scenes: a change made
+through one server is NOT visible through the other.
+Use the exact MCP server names shown in backticks below.
+
+* `{full_access_server}` — Blender Foundation's official Blender MCP, connected
+  to the workspace Blender bridge on 127.0.0.1:{full_access_port}. Use its
+  official full-access tools to build and edit geometry. Its scene is a default
+  new Blender scene ({full_access_scene}).
+
+* `{viewport_only_server}` — camera/viewport-only access to the Blender whose
+  add-on listens on 127.0.0.1:{viewport_only_port}. Its scene ({viewport_only_scene})
+  holds the reference model, imported from {ref_name}, and is the ground truth you
+  compare against — do not try to change it. It exposes only a viewport
+  screenshot tool plus an execute-code tool that AST-checks its input: whole-value
+  assignments to the active camera or the 3D viewport view, nothing else (no
+  print, no bpy.ops, no bpy.data). Read that tool's description before using it.
+
+A useful loop is therefore: move the reference camera through
+`{viewport_only_server}` and screenshot it to see the target from any angle,
+then do the actual work in `{full_access_server}`.
+
+Your task follows.

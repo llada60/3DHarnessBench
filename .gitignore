@@ -1,0 +1,52 @@
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Credentials and local overrides
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+
+# Pixi and model/download caches
+.pixi/
+.cache/
+tools/
+
+# Experiment and evaluation artifacts
+outputs/
+grey_shaded_outputs/
+evaluation/external/
+evaluation/results/
+evaluation/**/_metrics/
+scripts/*/.cache/
+scripts/.runtime-*/
+
+# Benchmark assets are distributed separately.
+data/benchmark/*
+!data/benchmark/README.md
+
+# Optional local dependency staging; dependencies come from pyproject.toml.
+raw_agents/vendor/
+raw_agents/input/
+raw_agents/output/
+
+# Runtime logs and Blender backups
+*.log
+*.blend1
+*.blend2

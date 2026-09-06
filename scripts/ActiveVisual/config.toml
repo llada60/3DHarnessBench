@@ -1,0 +1,129 @@
+# ActiveVisual defaults. Public CLI options override these values.
+
+[run]
+tasks_root = "outputs/ActiveVisual/w_texture"
+input_root = "data/benchmark"
+tasks = []
+prompt_file = "prompt.txt"
+ref_file = "ref.glb"
+timeout_sec = 3600
+skip_completed = true
+
+[official]
+source_url = "https://projects.blender.org/lab/blender_mcp.git"
+source_ref = "v1.0.0"
+server_name = "official-blender-mcp"
+cache_dir = "scripts/ActiveVisual/.cache"
+
+[resume]
+enabled = true
+on_timeout = true
+on_error = true
+max_attempts = 0
+repeat_prompt = true
+extra_limit_patterns = []
+
+[blender]
+binary = "tools/blender-5.1.2-linux-x64/blender"
+# Inherit CUDA_VISIBLE_DEVICES from the shell / project .env.
+gpu_device = "auto"
+random_ports = true
+full_access_port = 9999
+viewport_only_port = 8888
+display = "auto"
+xpra = false
+prepare_reference = true
+reference_light = false
+
+[agent]
+kind = "kimi"
+token_total_limit = 80000000
+no_memory = true
+
+[agent.codex]
+model = "gpt-5.6-sol"
+thinking_depth = "high"
+full_access_server = "official-blender-mcp"
+viewport_only_server = "blender-viewport-only"
+timeout_reconnect_max = 5
+session_retry_delay_sec = 10
+session_retry_delay_max_sec = 120
+
+[agent.qwen-tokenplan]
+model = "qwen3.8-max-preview"
+thinking_depth = "high"
+base_url = "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
+api_key_env = "QWEN_API_KEY"
+context_window = 262144
+request_timeout_ms = 600000
+stream_idle_timeout_ms = 600000
+request_max_retries = 5
+session_continue_max = 5
+timeout_reconnect_max = 5
+session_retry_delay_sec = 10
+session_retry_delay_max_sec = 120
+image_payload_threshold = 1
+max_recent_images_to_retain = 0
+full_access_server = "official-blender-mcp"
+viewport_only_server = "blender-viewport-only"
+
+# Official MiniMax endpoint. This is the former off-minimax-m3 backend.
+[agent.minimax-m3]
+model = "MiniMax-M3"
+thinking_depth = "high"
+base_url = "https://api.minimax.io/anthropic/v1"
+api_key_env = "MINIMAX_API_KEY"
+max_tokens = 4096
+image_inputs = true
+max_tool_result_chars = 24000
+mcp_tool_timeout_sec = 600
+request_timeout_sec = 600
+session_continue_max = 5
+timeout_reconnect_max = 5
+session_retry_delay_sec = 10
+session_retry_delay_max_sec = 120
+full_access_server = "official-blender-mcp"
+viewport_only_server = "blender-viewport-only"
+
+[agent.claude]
+model = "claude-fable-5"
+thinking_depth = "high"
+full_access_server = "official-blender-mcp"
+viewport_only_server = "blender-viewport-only"
+timeout_reconnect_max = 5
+session_retry_delay_sec = 10
+session_retry_delay_max_sec = 120
+
+[agent.opus]
+model = "claude-opus-5"
+thinking_depth = "high"
+full_access_server = "official-blender-mcp"
+viewport_only_server = "blender-viewport-only"
+timeout_reconnect_max = 5
+session_retry_delay_sec = 10
+session_retry_delay_max_sec = 120
+
+[agent.kimi]
+model = "k3"
+thinking_depth = "high"
+base_url = "https://api.kimi.com/coding"
+provider_type = "anthropic"
+api_key_env = "MOONSHOT_API_KEY"
+context_window = 1048576
+capabilities = ["thinking", "tool_use", "image_in", "video_in"]
+full_access_server = "official-blender-mcp"
+viewport_only_server = "blender-viewport-only"
+timeout_reconnect_max = 5
+session_retry_delay_sec = 10
+session_retry_delay_max_sec = 120
+
+[agent.agy]
+model = "Gemini 3.1 Pro (High)"
+thinking_depth = "high"
+idle_sec = 25
+followups = []
+full_access_server = "official-blender-mcp"
+viewport_only_server = "blender-viewport-only"
+timeout_reconnect_max = 5
+session_retry_delay_sec = 10
+session_retry_delay_max_sec = 120

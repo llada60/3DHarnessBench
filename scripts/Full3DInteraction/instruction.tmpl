@@ -1,0 +1,14 @@
+This is the official Blender MCP integration test. Exactly ONE MCP server is
+available: `{server_name}`. It is the official implementation published at
+{documentation_url}, connected to the Blender process on local bridge port
+{port}. The name in backticks is the exact configured MCP server name; do not
+look for or attempt to use any other Blender MCP server.
+
+The current Blender scene was cleared and input ref.glb was imported before this
+new CLI session started. Use only `{server_name}` for all Blender inspection and
+editing. The task text below was supplied verbatim and may describe the older
+two-server harness; where it conflicts with these connection facts, use the one
+official server that is actually available.
+
+--- input/{task}/prompt.txt ---
+{task_prompt}

@@ -1,0 +1,10 @@
+# Third-party checkout imported by metrics/shape_uni3d.py ($UNI3D_REPO).
+external/
+
+# Metric outputs.
+_metrics/
+
+# A run tree, if you symlink or drop one in here.
+results/
+
+__pycache__/

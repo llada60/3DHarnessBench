@@ -1,0 +1,20 @@
+[workspace]
+name = "3dharnessbench-ci"
+version = "0.1.0"
+description = "Lightweight offline checks for 3DHarnessBench"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.13.*"
+python-dotenv = ">=1,<2"
+pytest = ">=8.4,<9"
+ruff = "==0.16.6"
+shellcheck = ">=0.11,<0.12"
+
+[tasks]
+test = { cmd = "python -m pytest", cwd = "../.." }
+lint-python = { cmd = "ruff check .", cwd = "../.." }
+lint-shell = { cmd = "shellcheck -x -P SCRIPTDIR scripts/ActiveVisual/start-remote-blender.sh scripts/ActiveVisual/stop-remote-blender.sh", cwd = "../.." }
+cli-smoke = { cmd = "bash -euo pipefail -c 'python scripts/Single-view/run.py --help >/dev/null && python scripts/Multi-view/run.py --help >/dev/null && python scripts/ActiveVisual/run.py --help >/dev/null && python scripts/Full3DInteraction/run.py --help >/dev/null && python evaluation/evaluate.py --help >/dev/null'", cwd = "../.." }
+check = { depends-on = ["lint-python", "lint-shell", "test", "cli-smoke"] }

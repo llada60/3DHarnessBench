@@ -1,0 +1,152 @@
+[project]
+name = "graded-3d-interaction-experiments"
+version = "0.1.0"
+description = "Standalone Blender reconstruction experiments and evaluation"
+readme = "README.md"
+license = "GPL-3.0-only"
+requires-python = ">=3.13,<3.14"
+keywords = ["blender", "3d-reconstruction", "visual-agents", "evaluation"]
+dependencies = []
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = [
+    { platform = "osx-arm64", macos = "14.0" },
+    { platform = "linux-64", cuda = "13.0" },
+]
+preview = ["pixi-build"]
+
+[tool.pixi.dependencies]
+python = "3.13.*"
+pip = "*"
+setuptools = ">=80,<82"
+uv = "*"
+git = ">=2.43,<3"
+python-dotenv = ">=1,<2"
+nodejs = ">=25,<26"
+ripgrep = ">=15,<16"
+
+# Runtime and evaluation stack.
+numpy = ">=2,<3"
+scipy = ">=1.17,<2"
+scikit-image = ">=0.26,<0.27"
+matplotlib = ">=3.10,<4"
+pillow = ">=12.1"
+opencv = ">=4.13"
+imageio = ">=2.37,<3"
+pyyaml = ">=6"
+loguru = ">=0.7"
+tqdm = ">=4.67,<5"
+requests = ">=2.32"
+openai = ">=2.21,<3"
+anthropic = ">=0.79,<1"
+pydantic = ">=2.11,<=2.12.4"
+tokenizers = ">=0.22.2,<0.23"
+huggingface_hub = ">=1.5,<2"
+safetensors = ">=0.7"
+pygit2 = ">=1.19,<2"
+easydict = ">=1.13,<2"
+
+[tool.pixi.target.linux-64.dependencies]
+dbus = ">=1.16,<2"
+# Linux-only native build tools used by TaskSolver and point-cloud-utils.
+gxx_linux-64 = ">=13,<13.3"
+cmake = ">=4.3,<5"
+ninja = ">=1.11"
+kernel-headers_linux-64 = ">=4"
+libboost-devel = ">=1.88"
+libboost-python-devel = ">=1.88"
+rust = ">=1.96,<1.97"
+clang = ">=22,<23"
+libclang = ">=22,<23"
+pkg-config = "*"
+openssl = "*"
+libcap = ">=2.78,<3"
+
+# Remote Blender/Xpra/VirtualGL runtime.
+xorg-libx11 = ">=1.8,<2"
+xorg-libxtst = ">=1.2,<2"
+xorg-libxcomposite = ">=0.4,<0.5"
+xorg-libxdamage = ">=1.1,<2"
+xorg-libxfixes = ">=6,<7"
+xorg-libxrandr = ">=1.5,<2"
+xorg-libxres = ">=1.2,<2"
+libxkbfile = ">=1.1,<2"
+cairo = ">=1.18,<2"
+pycairo = ">=1.29,<2"
+gtk3 = ">=3.24,<4"
+pygobject = ">=3.56,<4"
+gobject-introspection = ">=1.86,<2"
+python-xlib = ">=0.33,<0.34"
+dbus-python = ">=1.3,<2"
+setproctitle = ">=1.3,<2"
+lz4 = ">=4.4,<5"
+xxhash = ">=0.8,<0.9"
+
+# Locally packaged native runtime.
+virtualgl = { path = "packages/virtualgl" }
+
+[tool.pixi.target.osx-arm64.dependencies]
+# Share Conda's OpenMP runtime with NumPy/OpenCV on macOS. The PyPI torch
+# wheel bundles another libomp and aborts when both runtimes are loaded.
+pytorch = ">=2.12,<2.13"
+torchvision = ">=0.27,<0.28"
+
+[tool.pixi.pypi-dependencies]
+transformers = ">=5.5"
+accelerate = ">=1.12"
+timm = ">=1.0"
+trimesh = "*"
+open-clip-torch = ">=3.3,<4"
+ftfy = ">=6.3,<7"
+
+[tool.pixi.target.linux-64.pypi-dependencies]
+torch = ">=2.12,<2.13"
+torchvision = ">=0.27,<0.28"
+point-cloud-utils = { git = "https://github.com/Wenri/point-cloud-utils.git", branch = "fix/manifold-target-compile-options" }
+xpra = { git = "https://github.com/Xpra-org/xpra.git" }
+tasksolver = { git = "https://github.com/Wenri/TaskSolver.git", branch = "main" }
+
+[tool.pixi.pypi-options]
+extra-index-urls = ["https://download.pytorch.org/whl/cu130"]
+index-strategy = "unsafe-best-match"
+
+[tool.pixi.activation.env]
+# Keep weights local without hiding the user's existing HF CLI login.
+HF_HUB_CACHE = "$PIXI_PROJECT_ROOT/.cache/huggingface/hub"
+HF_XET_CACHE = "$PIXI_PROJECT_ROOT/.cache/huggingface/xet"
+TORCH_HOME = "$PIXI_PROJECT_ROOT/.cache/torch"
+
+[tool.pixi.target.linux-64.activation.env]
+CC = "$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-gcc"
+CXX = "$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-g++"
+CPP = "$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-cpp"
+AR = "$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-ar"
+LD = "$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-ld"
+NM = "$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-nm"
+RANLIB = "$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-ranlib"
+STRIP = "$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-strip"
+MAX_JOBS = "64"
+CMAKE_BUILD_PARALLEL_LEVEL = "64"
+CARGO_BUILD_JOBS = "64"
+UV_CONCURRENT_BUILDS = "1"
+
+[tool.pixi.tasks]
+single-view = "python scripts/Single-view/run.py"
+multi-view = "python scripts/Multi-view/run.py"
+active-visual = "python scripts/ActiveVisual/run.py"
+full-3d-interaction = "python scripts/Full3DInteraction/run.py"
+evaluate = "python evaluation/evaluate.py"
+env-run = "python scripts/with_env.py"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py313"
+
+[tool.ruff.lint]
+# Establish a small, stable baseline for syntax errors, invalid control flow,
+# undefined names and similarly critical failures without reformatting the
+# research codebase.
+select = ["E9", "F63", "F7", "F82"]
