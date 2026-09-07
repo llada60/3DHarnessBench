@@ -55,7 +55,6 @@
 Follow **[INSTALL.md](INSTALL.md)** to install Pixi, Blender **5.1.2** and agent
 CLIs, configure `.env`, and prepare evaluation weights. The target platform is
 **Linux x86-64 + NVIDIA GPU**; ActiveVisual and Full3DInteraction use Xvfb.
-The Linux installation and end-to-end validation checklist has been completed.
 
 Run commands from the repository root (`3DHarnessBench/`). All entry points load
 `.env` automatically; exported shell variables take precedence.
@@ -87,7 +86,7 @@ pixi run single-view \
 
 For **Multi-view**, replace `single-view` with `multi-view`.
 
-- `--agent`: agent to run; default **`kimi-k3`**. Supported names:
+- `--agent`: agent to run. Supported names:
   `gpt-5-6-sol`, `kimi-k3`, `opus-5`, `fable-5`, `qwen3-8-max-preview`,
   `gemini3-1-pro`, `minimax-m3`.
 - `--data-path`: benchmark directory; default **`data/benchmark`**.
