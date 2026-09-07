@@ -30,8 +30,10 @@
                    <sup>3</sup> Télécom Paris</div>
             <div class="buttons">
                 <a aria-disabled="true" class="btn disabled" id="paperLink">Paper <span>coming soon</span></a>
-                <a aria-disabled="true" class="btn disabled" id="codeLink">Code <span>coming soon</span></a>
-                <a aria-disabled="true" class="btn disabled" id="dataLink">Benchmark <span>coming soon</span></a>
+                <a aria-disabled="true" class="btn" id="codeLink"
+                    href="https://github.com/llada60/3DHarnessBench">Code</a>
+                <a aria-disabled="true" class="btn" id="dataLink"
+                    href="https://huggingface.co/datasets/lingada/3DHarnessBench">Benchmark</a>
             </div>
             <p class="tldr"><strong>TL;DR:</strong> We introduce 3DHarnessBench, a benchmark for agentic 3D-to-code
                 reconstruction that evaluates how frontier VLMs exploit visual and geometric evidence to reconstruct a
@@ -523,9 +525,9 @@
                 <article class="metric-card">
                     <h4>Explicit Measurements Ablation</h4>
                     <ul>
-                        <li>Global: provide global measurements (e.g., bounding box, volume, surface area).</li>
+                        <li>Global: provide global measurements (e.g., bounding box, dimensions, center).</li>
                         <li>Parts: provide part-level measurements (e.g., part centers, dimensions, components,
-                            repetition statistics).</li>
+                            repetition statistics) using a GPT-5.6 Sol-authored measurement program.</li>
                     </ul>
                 </article>
             </div>
@@ -573,6 +575,8 @@
                             </tr>
                         </tbody>
                     </table>
+                    <p class="table-note">Camera pose information significantly improves reconstruction quality, while
+                        background grid has a limited impact on the geometry metrics.</p>
                 </div>
                 <div class="mini-table-card">
                     <h4>Explicit Measurements · Opus 5</h4>
@@ -617,6 +621,8 @@
                             </tr>
                         </tbody>
                     </table>
+                    <p class="table-note">The parts measurements improve the reconstruction quality, especially in terms
+                        of topology and geometry.</p>
                 </div>
             </div>
             <h3 class="subhead">Active Visual Anlysis</h3>
@@ -939,7 +945,7 @@
                         </tbody>
                     </table>
                 </div>
-                <p class="table-note">Betti-number errors are normalized L1 components (↓). Cost is the CLI-reported
+                <p class="table-note">Cost is the CLI-reported
                     session cost where available; * denotes token-based estimates. “–” means not reported or not
                     applicable.</p>
             </div>
