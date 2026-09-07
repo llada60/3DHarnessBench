@@ -58,7 +58,7 @@ def build_parser(mode: str) -> argparse.ArgumentParser:
                         default=4,
                         help="number of benchmark instances to run at once "
                              "(default: %(default)s)")
-    parser.add_argument("--timeout", type=positive_int, default=3600,
+    parser.add_argument("--timeout", type=positive_int, default=9600,
                         help="seconds per CLI attempt (default: %(default)s)")
     parser.add_argument("--max-retries", type=nonnegative_int, default=5,
                         help="provider session reconnections after a timeout "

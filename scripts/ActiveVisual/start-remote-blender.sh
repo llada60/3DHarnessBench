@@ -282,6 +282,7 @@ start_xpra() {
     # remote clients reach exclusively through SSH:  xpra attach ssh://USER@SERVER/<n>
     xpra shadow "$DISPLAY_ID" \
         --daemon=no \
+        --dbus=no \
         --socket-dir="$SOCKET_DIR/xpra" \
         --bind="$SOCKET_DIR/xpra/blender-${DISPLAY_NUMBER}" \
         --mdns=no \

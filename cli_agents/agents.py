@@ -115,6 +115,7 @@ import urllib.error
 import urllib.request
 from contextlib import AsyncExitStack
 from dataclasses import dataclass, field
+from datetime import timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -1471,14 +1472,15 @@ class _AnthropicStreamAccumulator:
 
 
 class _MmxMessagesProxyHandler(BaseHTTPRequestHandler):
-    """Adapt mmx's fixed MiniMax URL/auth shape to our vLLM deployment.
+    """Relay mmx's fixed MiniMax URL while retaining streamed tool calls.
 
     mmx always posts to ``<base>/anthropic/v1/messages`` with ``x-api-key``.
-    The self-hosted server exposes the same Messages payload at ``/v1/messages``
-    and authenticates with a Bearer token.  The upstream request is forced to
-    stream so reverse proxies keep seeing activity during long MiniMax thinking
-    phases.  SSE is relayed immediately while a full response is reconstructed
-    for the MCP adapter, because mmx's stream renderer drops tool-use events.
+    The configured MiniMax-compatible endpoint may expose that payload at a
+    different URL, so the local proxy forwards it using the same authentication
+    header.  The upstream request is forced to stream so reverse proxies keep
+    seeing activity during long thinking phases.  SSE is relayed immediately
+    while a full response is reconstructed for the MCP adapter, because mmx's
+    stream renderer drops tool-use events.
     """
 
     @staticmethod
@@ -1497,6 +1499,15 @@ class _MmxMessagesProxyHandler(BaseHTTPRequestHandler):
                 "type": "proxy_error",
                 "message": f"{type(exc).__name__}: {exc}",
             },
+        }
+
+    @staticmethod
+    def _upstream_headers(api_key: str, content_type: str,
+                          anthropic_version: str) -> dict[str, str]:
+        return {
+            "X-Api-Key": api_key,
+            "Content-Type": content_type,
+            "Anthropic-Version": anthropic_version,
         }
 
     def _publish(self, response: dict) -> None:
@@ -1521,13 +1532,10 @@ class _MmxMessagesProxyHandler(BaseHTTPRequestHandler):
             body = json.dumps(request_body, separators=(",", ":")).encode()
             request = urllib.request.Request(
                 self.server.upstream_url, data=body, method="POST",
-                headers={
-                    "Authorization": f"Bearer {self.server.upstream_key}",
-                    "Content-Type": self.headers.get(
-                        "content-type", "application/json"),
-                    "Anthropic-Version": self.headers.get(
-                        "anthropic-version", "2023-06-01"),
-                })
+                headers=self._upstream_headers(
+                    self.server.upstream_key,
+                    self.headers.get("content-type", "application/json"),
+                    self.headers.get("anthropic-version", "2023-06-01")))
             try:
                 with urllib.request.urlopen(
                         request, timeout=self.server.upstream_timeout) as response:
@@ -1626,11 +1634,12 @@ class MmxAgent(BaseAgent):
         configured = str(self.cfg.get("cli", "")).strip()
         if configured:
             return configured
-        if shutil.which("node") is None and shutil.which("nodejs") is None:
-            fallback = self.repo / "cli_agents" / "mmx_text_chat.py"
-            if fallback.is_file():
-                return str(fallback)
         found = shutil.which("mmx")
+        if found and (shutil.which("node") or shutil.which("nodejs")):
+            return found
+        fallback = self.repo / "cli_agents" / "mmx_text_chat.py"
+        if fallback.is_file():
+            return str(fallback)
         if found:
             return found
         bundled = self.repo / ".pixi" / "envs" / "default" / "bin" / "mmx"
@@ -1755,6 +1764,15 @@ class MmxAgent(BaseAgent):
             blocks.append({"type": "text", "text":
                            json.dumps(structured, default=str)})
         return blocks or [{"type": "text", "text": "Tool completed."}]
+
+    @staticmethod
+    async def _call_mcp_tool(session, name: str, arguments: dict,
+                             timeout: float):
+        return await asyncio.wait_for(
+            session.call_tool(
+                name, arguments,
+                read_timeout_seconds=timedelta(seconds=timeout)),
+            timeout=timeout + 1)
 
     def _tool_round_limit(self) -> int | None:
         """Optional model/tool round cap; absent or zero means unlimited."""
@@ -2049,11 +2067,9 @@ class MmxAgent(BaseAgent):
                                     max(1.0, deadline - time.monotonic()),
                                     float(self.cfg.get(
                                         "mcp_tool_timeout_sec", 600)))
-                                result = await asyncio.wait_for(
-                                    mcp_session.call_tool(
-                                        tool_name, arguments,
-                                        read_timeout_seconds=tool_timeout),
-                                    timeout=tool_timeout + 1)
+                                result = await self._call_mcp_tool(
+                                    mcp_session, tool_name, arguments,
+                                    tool_timeout)
                                 blocks = self._tool_result_content(result)
                                 is_error = bool(
                                     getattr(result, "isError", False) or

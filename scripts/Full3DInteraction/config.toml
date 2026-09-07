@@ -6,7 +6,7 @@ output_root = "outputs/Full3DInteraction/w_texture"
 tasks = []
 prompt_file = "prompt.txt"
 ref_file = "ref.glb"
-timeout_sec = 3600
+timeout_sec = 9600
 skip_completed = true
 
 [official]

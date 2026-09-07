@@ -55,7 +55,7 @@
 Follow **[INSTALL.md](INSTALL.md)** to install Pixi, Blender **5.1.2** and agent
 CLIs, configure `.env`, and prepare evaluation weights. The target platform is
 **Linux x86-64 + NVIDIA GPU**; ActiveVisual and Full3DInteraction use Xvfb.
-Linux installation and end-to-end validation are pending.
+The Linux installation and end-to-end validation checklist has been completed.
 
 Run commands from the repository root (`3DHarnessBench/`). All entry points load
 `.env` automatically; exported shell variables take precedence.
@@ -118,7 +118,7 @@ pixi run active-visual \
   --output-dir outputs \
   --texture-renders True \
   --num-parallel 4 \
-  --timeout 3600 \
+  --timeout 9600 \
   --max-retries 5
 ```
 
@@ -128,7 +128,7 @@ For **Full3DInteraction**, replace `active-visual` with `full-3d-interaction`.
 - `--texture-renders`: load the textured reference GLB (`True`, default) or its
   grey version (`False`).
 - `--num-parallel`: concurrent instances; default **4**.
-- `--timeout`: seconds per CLI attempt; default **3600**, not a total run limit.
+- `--timeout`: seconds per CLI attempt; default **9600**, not a total run limit.
 - `--max-retries`: same-session reconnections after timeout; default **5**.
   Qwen/MiniMax also use this budget for session continuations.
 

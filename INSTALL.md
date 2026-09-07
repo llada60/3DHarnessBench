@@ -2,8 +2,8 @@
 
 This guide sets up **3DHarnessBench on Linux x86-64 with an NVIDIA GPU**.
 Commands use Debian/Ubuntu and run from the repository root
-(`3DHarnessBench/`). Linux installation and end-to-end validation are pending;
-the first `v0.1.0` tag will be created after the checklist in step 6 succeeds.
+(`3DHarnessBench/`). The Linux installation and end-to-end checklist in step 6
+have been validated on Ubuntu with an NVIDIA GPU.
 
 ## 1. Install the environment
 

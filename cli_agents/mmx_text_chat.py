@@ -175,6 +175,20 @@ def _read_body(response) -> dict:
                                                            "message": value}}
 
 
+def _request_payload(args: argparse.Namespace, messages: list,
+                     tools: list[dict]) -> dict:
+    payload = {
+        "model": args.model,
+        "messages": messages,
+        "max_tokens": int(args.max_tokens),
+        "stream": bool(args.stream),
+    }
+    if tools:
+        payload["tools"] = tools
+        payload["tool_choice"] = {"type": "auto"}
+    return payload
+
+
 def main() -> None:
     args = _parse_args(__import__("sys").argv[1:])
     messages_path = Path(args.messages_file)
@@ -189,15 +203,7 @@ def main() -> None:
         if isinstance(loaded, dict):
             tools.append(loaded)
 
-    payload = {
-        "model": args.model,
-        "messages": messages,
-        "max_tokens": int(args.max_tokens),
-        "stream": bool(args.stream),
-    }
-    if tools:
-        payload["tools"] = tools
-        payload.setdefault("tool_choice", "auto")
+    payload = _request_payload(args, messages, tools)
 
     request_body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
     endpoint = args.base_url.rstrip("/") + "/anthropic/v1/messages"

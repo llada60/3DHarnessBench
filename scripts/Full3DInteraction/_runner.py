@@ -94,6 +94,9 @@ HEADLESS_SCREENSHOT_REPLACEMENT = '''        if params.area_ui_type == "VIEW_3D"
                 except RuntimeError as ex:
                     return Result(status="error", message=str(ex))
 '''
+MCP_DEPENDENCY_STOCK = '"mcp[cli]>=1.2.0",'
+MCP_DEPENDENCY_COMPAT_MAJOR = '"mcp[cli]>=1.2.0,<2",'
+MCP_DEPENDENCY_PINNED = '"mcp[cli]==1.29.0",'
 
 
 def load_module(name: str, path: Path):
@@ -366,29 +369,37 @@ def ensure_source(cfg: dict) -> Path:
     cache = resolve(official["cache_dir"])
     checkout = cache / f"blender_mcp-{official['source_ref'].replace('/', '_')}"
     marker = checkout / "mcp" / "pyproject.toml"
-    if marker.is_file():
-        with SOURCE_LOCK.open("a+") as lock:
-            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-            ensure_headless_screenshot_compat(checkout)
-        return checkout
     cache.mkdir(parents=True, exist_ok=True)
     with SOURCE_LOCK.open("a+") as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-        if marker.is_file():
-            ensure_headless_screenshot_compat(checkout)
-            return checkout
-        partial = cache / f".{checkout.name}.partial-{os.getpid()}"
-        if partial.exists():
-            shutil.rmtree(partial)
-        completed = run_command([
-            "git", "clone", "--depth", "1", "--branch", official["source_ref"],
-            official["source_url"], str(partial),
-        ])
-        if completed.returncode:
-            raise RuntimeError(f"official source clone failed: {completed.stderr.strip()}")
-        partial.rename(checkout)
-    ensure_headless_screenshot_compat(checkout)
+        if not marker.is_file():
+            partial = cache / f".{checkout.name}.partial-{os.getpid()}"
+            if partial.exists():
+                shutil.rmtree(partial)
+            completed = run_command([
+                "git", "clone", "--depth", "1", "--branch", official["source_ref"],
+                official["source_url"], str(partial),
+            ])
+            if completed.returncode:
+                raise RuntimeError(
+                    f"official source clone failed: {completed.stderr.strip()}")
+            partial.rename(checkout)
+        ensure_headless_screenshot_compat(checkout)
+        pin_compatible_mcp_sdk(checkout)
     return checkout
+
+
+def pin_compatible_mcp_sdk(checkout: Path) -> None:
+    """Pin the SDK version verified with the official v1.0.0 server."""
+    target = checkout / "mcp" / "pyproject.toml"
+    text = target.read_text()
+    if MCP_DEPENDENCY_PINNED in text:
+        return
+    old = (MCP_DEPENDENCY_STOCK if MCP_DEPENDENCY_STOCK in text
+           else MCP_DEPENDENCY_COMPAT_MAJOR)
+    if old not in text:
+        raise RuntimeError("official MCP dependency declaration changed")
+    target.write_text(text.replace(old, MCP_DEPENDENCY_PINNED, 1))
 
 
 def ensure_headless_screenshot_compat(checkout: Path) -> None:
@@ -589,6 +600,7 @@ class Stack:
                 xpra_proc = self._start("xpra", [xpra_bin, "shadow", f":{self.display}",
                             "--daemon=no", f"--socket-dir={xpra_dir}",
                             f"--bind={xpra_socket}",
+                            "--dbus=no",
                             "--mdns=no", "--notifications=no", "--pulseaudio=no",
                             "--webcam=no", "--html=no"], env)
                 deadline = time.monotonic() + 20
