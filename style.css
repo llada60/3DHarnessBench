@@ -47,3 +47,103 @@ img{display:block;max-width:100%;height:auto;margin-inline:auto}
   .efficiency-results-table{min-width:680px;font-size:9.5px}
   .efficiency-results-table th,.efficiency-results-table td{padding-left:4px;padding-right:4px}
 }
+
+/* Fluid type and responsive layout. clamp() keeps text readable without the
+   compounding behavior of percentage-based font sizes. */
+:root{
+  --page-gutter:clamp(14px,4vw,36px);
+  --section-space:clamp(36px,6vw,52px);
+}
+html{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+body{
+  font-size:clamp(15px,14.35px + .18vw,17px);
+  overflow-wrap:anywhere;
+}
+.container{
+  width:min(var(--max),calc(100% - (2 * var(--page-gutter))));
+}
+.hero{
+  padding:clamp(30px,6vw,46px) 0 clamp(24px,4vw,30px);
+}
+.title-logo{
+  width:min(760px,86vw);
+  margin-bottom:clamp(12px,2vw,18px);
+}
+.subtitle{
+  max-width:38ch;
+  font-size:clamp(1.15rem,4.8vw,2.375rem);
+  line-height:1.16;
+  text-wrap:balance;
+}
+.authors,.affiliations{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  column-gap:clamp(12px,2.4vw,26px);
+  row-gap:2px;
+}
+.authors{font-size:clamp(.94rem,1.5vw,1.125rem)}
+.affiliations{font-size:clamp(.78rem,1.2vw,.875rem);line-height:1.45}
+.buttons{margin:clamp(16px,3vw,20px) 0 clamp(24px,4vw,32px)}
+.btn{display:inline-flex;align-items:center;justify-content:center}
+.tldr,.section-intro,.abstract-text,.acknowledgements-text{
+  font-size:clamp(.96rem,1.5vw,1.0625rem);
+}
+.section{padding:var(--section-space) 0}
+h2{font-size:clamp(1.65rem,4.5vw,2.125rem);text-wrap:balance}
+h3.subhead{font-size:clamp(1.22rem,3.4vw,1.5625rem);line-height:1.3}
+.harness-grid h3{font-size:clamp(1.02rem,2vw,1.17rem);line-height:1.3}
+.hero-figure-wrap{width:min(100%,1008px);margin-inline:auto}
+.two-col.single-col>.figure-card{width:min(100%,1008px);margin-inline:auto}
+.perceptual-figure img{width:min(60%,680px)}
+.uni3d-plot-scroll{min-width:0}
+.uni3d-svg{min-width:0}
+.table-scroll,.mini-table-card,.efficiency-results-card .main-results-head{
+  scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch;
+}
+
+@media(max-width:700px){
+  .hero{padding-top:28px}
+  .title-logo{width:min(100%,620px)}
+  .subtitle{max-width:30ch}
+  .btn,.tab,.uni3d-reset,.copy-btn{min-height:44px}
+  .buttons{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    width:min(100%,330px);
+    margin-inline:auto;
+  }
+  .tldr{padding:12px 14px}
+  .gallery-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tab{padding-inline:8px}
+  .result-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .result-summary>div{padding:14px 8px}
+  .result-summary b{font-size:clamp(1.5rem,8vw,1.875rem)}
+  .uni3d-chart-stage{min-width:0}
+  .uni3d-plot-scroll{
+    overflow-x:auto;
+    overscroll-behavior-inline:contain;
+    touch-action:pan-x pan-y;
+  }
+  .uni3d-svg{width:680px;max-width:none}
+  .uni3d-setting-btn,.uni3d-agent-btn{min-height:36px}
+  .main-results-card{border-radius:8px}
+  .main-results-table{min-width:720px}
+  .mini-table-card{padding:10px;overflow-x:auto}
+  .mini-table{min-width:520px}
+  .perceptual-figure img{width:100%}
+  .bib-wrap{padding:52px 14px 14px;font-size:.75rem}
+  .copy-btn{top:8px;right:8px}
+}
+
+@media(max-width:380px){
+  .buttons{gap:8px}
+  .btn{padding-inline:10px}
+  .gallery-tabs{gap:6px}
+  .result-summary{gap:8px}
+  .result-summary span{font-size:.75rem}
+}

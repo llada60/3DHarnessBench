@@ -20,14 +20,20 @@
     <main>
         <!-- 1. HERO / TITLE -->
         <section class="hero container" id="top">
-            <img alt="3DHarnessBench" class="title-logo" src="assets/title-logo.png"
-                style="width: 50%; height: auto;" />
+            <img alt="3DHarnessBench" class="title-logo" src="assets/title-logo.png" />
             <p class="subtitle">Probing Agentic 3D-to-Code Capabilities of Frontier Vision-Language Models</p>
             <!-- <p class="venue">3DV 2027 Submission</p> -->
-            <div class="authors">Ling Liu<sup>1,2,3</sup>   Bingchen Gong<sup>1,2</sup>   Amal Dev
-                Parakkat<sup>1,3</sup>   Maks Ovsjanikov<sup>1,2</sup></div>
-            <div class="affiliations"><sup>1</sup> Institut Polytechnique de Paris    <sup>2</sup> École Polytechnique
-                   <sup>3</sup> Télécom Paris</div>
+            <div class="authors">
+                <span>Ling Liu<sup>1,2,3</sup></span>
+                <span>Bingchen Gong<sup>1,2</sup></span>
+                <span>Amal Dev Parakkat<sup>1,3</sup></span>
+                <span>Maks Ovsjanikov<sup>1,2</sup></span>
+            </div>
+            <div class="affiliations">
+                <span><sup>1</sup> Institut Polytechnique de Paris</span>
+                <span><sup>2</sup> École Polytechnique</span>
+                <span><sup>3</sup> Télécom Paris</span>
+            </div>
             <div class="buttons">
                 <a aria-disabled="true" class="btn" id="paperLink" href="https://arxiv.org/pdf/2609.06535">Paper</a>
                 <a aria-disabled="true" class="btn" id="suppLink" href="https://arxiv.org/abs/2609.06535">Arxiv</a>
@@ -40,8 +46,7 @@
                 reconstruction that evaluates how frontier VLMs exploit visual and geometric evidence to reconstruct a
                 target object.</p>
             <figure class="hero-figure-wrap">
-                <img alt="3DHarnessBench overview" class="hero-figure"
-                    style="width: 90%; height: auto; display: block; margin: 0 auto;" src="assets/figures/teaser.png" />
+                <img alt="3DHarnessBench overview" class="hero-figure" src="assets/figures/teaser.png" />
                 <!-- <figcaption>3DHarnessBench evaluates seven frontier VLM agents on reconstructing target 3D objects as executable Blender Python code under progressively richer target-side access.</figcaption> -->
             </figure>
         </section>
@@ -143,27 +148,30 @@
             </div>
             <h3 class="subhead">Main Results</h3>
             <div class="two-col single-col">
-                <figure class="figure-card uni3d-interactive-figure" style="width: 90%; margin: 0 auto;">
+                <figure class="figure-card uni3d-interactive-figure">
                     <div class="uni3d-chart" id="uni3dHarnessChart"
                         aria-label="Interactive scatter plot of absolute Uni3D score and relative improvement over Single-view">
                         <div class="uni3d-chart-topbar">
                             <span class="uni3d-chart-hint">
-                                Click settings to show/hide · hover or click an agent to focus
+                                Toggle settings · tap an agent to focus · swipe the chart on mobile
                             </span>
                             <button class="uni3d-reset" id="uni3dReset" type="button">Reset</button>
                         </div>
 
                         <div class="uni3d-chart-stage">
-                            <svg class="uni3d-svg" id="uni3dSvg" viewBox="0 0 960 560" role="img"
-                                aria-labelledby="uni3dChartTitle uni3dChartDesc">
-                                <title id="uni3dChartTitle">Uni3D performance across harness settings</title>
-                                <desc id="uni3dChartDesc">
-                                    Absolute Uni3D score on the horizontal axis and relative improvement over
-                                    Single-view on the
-                                    vertical axis.
-                                    Settings can be toggled and agents can be highlighted.
-                                </desc>
-                            </svg>
+                            <div class="uni3d-plot-scroll" role="region" tabindex="0"
+                                aria-label="Uni3D chart; swipe horizontally on smaller screens">
+                                <svg class="uni3d-svg" id="uni3dSvg" viewBox="0 0 960 560" role="img"
+                                    aria-labelledby="uni3dChartTitle uni3dChartDesc">
+                                    <title id="uni3dChartTitle">Uni3D performance across harness settings</title>
+                                    <desc id="uni3dChartDesc">
+                                        Absolute Uni3D score on the horizontal axis and relative improvement over
+                                        Single-view on the
+                                        vertical axis.
+                                        Settings can be toggled and agents can be highlighted.
+                                    </desc>
+                                </svg>
+                            </div>
 
                             <div class="uni3d-setting-legend" id="uni3dSettingLegend" role="group"
                                 aria-label="Harness settings"></div>
@@ -515,7 +523,7 @@
                     lower is better.</p>
             </div>
             <h3 class="subhead">Geometric Grounding Analysis</h3>
-            <div class="three-cards" style="margin: 0 auto;">
+            <div class="three-cards">
                 <article class="metric-card">
                     <h4>Pose / Grid Ablation</h4>
                     <ul>
@@ -631,7 +639,7 @@
                 quality and acquisition
                 strategy.</p>
             <div class="two-col single-col align-start">
-                <figure class="figure-card" style="width: 90%; margin: 0 auto;">
+                <figure class="figure-card">
                     <img alt="Active Visual inspection behavior" src="assets/figures/agent_inspection.png" />
                     <figcaption>Gemini 3.1 Pro acquires few inspections, while MiniMax M3 acquires many
                         inspections but produces
@@ -646,13 +654,13 @@
                 self-correction for each agent
                 under Full 3D Interaction.</p>
             <div class="two-col single-col align-start">
-                <figure class="figure-card" style="width: 90%; margin: 0 auto;">
+                <figure class="figure-card">
                     <img alt="Initial reconstruction vs refinement gain" src="assets/figures/initial_final.png" />
                     <figcaption>Opus/Fable initialize strongly; MiniMax improves most from a weak initialization; Qwen
                         shows
                         both strong initial performance and self-correction.</figcaption>
                 </figure>
-                <figure class="figure-card" style="width: 90%; margin: 0 auto;">
+                <figure class="figure-card">
                     <img alt="Reconstruction trajectories" src="assets/figures/trajectories.png" />
                     <figcaption>An example of different agents reconstruction trajectories under Full 3D
                         Interaction. vn denotes the version n reconstruction.</figcaption>
@@ -953,8 +961,8 @@
 
             <h3 class="subhead">VLM-based perceptual evaluation</h3>
             <div class="two-col single-col">
-                <figure class="figure-card"><img alt="VLM-based hexagonal evaluation"
-                        style="width: 60%; height: auto; margin: 0 auto;" src="assets/figures/hexal.png" />
+                <figure class="figure-card perceptual-figure"><img alt="VLM-based hexagonal evaluation"
+                        src="assets/figures/hexal.png" />
                     <figcaption>Six-criterion evaluation by Gemini 3.1 Pro of Full 3D Interaction reconstructions,
                         comparing reconstructed renders
                         against ground-truth renders.
