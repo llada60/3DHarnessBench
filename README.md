@@ -3,7 +3,7 @@
 
 <p align="center">
   🌐 <a href="https://llada60.github.io/3DHarnessBench/">Project Page</a> |
-  📄 arXiv (coming soon) |
+  📄 <a href="https://arxiv.org/abs/2609.06535">arXiv</a> |
   🤗 <a href="https://huggingface.co/datasets/lingada/3DHarnessBench">Benchmark</a>
 </p>
 
@@ -13,7 +13,6 @@
 
 ![3DHarnessBench: visual comparisons, agentic Blender reconstruction, and benchmark scores](teaser.png)
 
----
 
 > **Abstract:** We introduce 3DHarnessBench, a benchmark that evaluates the agentic ability of frontier vision-language models (VLMs) to recover 3D geometry as Blender Python code from a variety of inputs. Unlike previous frameworks that prompt the VLMs with a fixed input (e.g., a single rendering or a text description), 3DHarnessBench evaluates four separate harness settings that progressively enable active agentic exploration, facilitated by recent Blender MCP functionality. Our hierarchy from Single-view, Multi-view, Active Visual (arbitrary viewpoint access), and Full 3D Interaction (complete access to the target object through Blender function calls) probes the models' abilities in both visual perception and active inference, tool calling, and self-correction. We observe that the ability of all frontier models to recover 3D geometry improves significantly with richer function call access, although the improvements are strongly model-dependent, revealing highly uneven agentic 3D-to-code capabilities. We release the benchmark, code, outputs, and agent trajectories for reproducible 3D evaluation.
 
