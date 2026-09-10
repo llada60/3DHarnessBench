@@ -9,6 +9,7 @@ from __future__ import annotations
 
 
 AGENT_CHOICES = (
+    "gpt-6-astra",
     "gpt-5-6-sol",
     "kimi-k3",
     "opus-5",

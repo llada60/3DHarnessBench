@@ -88,8 +88,8 @@ pixi run single-view \
 For **Multi-view**, replace `single-view` with `multi-view`.
 
 - `--agent`: agent to run; default **`kimi-k3`**. Supported names:
-  `gpt-5-6-sol`, `kimi-k3`, `opus-5`, `fable-5`, `qwen3-8-max-preview`,
-  `gemini3-1-pro`, `minimax-m3`.
+  `gpt-6-astra`, `gpt-5-6-sol`, `kimi-k3`, `opus-5`, `fable-5`,
+  `qwen3-8-max-preview`, `gemini3-1-pro`, `minimax-m3`.
 - `--data-path`: benchmark directory; default **`data/benchmark`**.
 - `--output-dir`: output base directory; default **`outputs`**.
 - `--texture-renders`: use color references (`True`, default) or grey references

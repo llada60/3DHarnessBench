@@ -19,7 +19,7 @@ Common options:
 | --- | --- |
 | `--data-path PATH` | benchmark root or one instance directory |
 | `--output-dir PATH` | output base; setting/texture/agent are appended |
-| `--agent NAME` | one of the seven names listed in the root README |
+| `--agent NAME` | one of the eight names listed in the root README |
 | `--texture-renders [BOOL]` | use color renders/textured GLBs |
 | `--no-texture-renders` | use grey renders/geometry-only GLBs |
 | `--tasks NAME ...` | select benchmark instances |

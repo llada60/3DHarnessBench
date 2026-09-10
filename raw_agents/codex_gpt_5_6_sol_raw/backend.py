@@ -1,4 +1,4 @@
-"""Internal backend for codex_gpt_5_6_sol_raw; invoked by the shared iterative runner."""
+"""Shared Codex CLI backend invoked by the iterative image runner."""
 
 import json
 import os

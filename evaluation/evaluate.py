@@ -74,6 +74,7 @@ FINAL_METRIC_FILES = {
 # the recorded usage would cost under API billing; they are not ChatGPT-plan
 # charges. Keep model-specific so an unknown agent never gets a made-up cost.
 API_TOKEN_PRICES = {
+    "gpt-6-astra": {"input": 10.0, "cached_input": 1.0, "output": 50.0},
     "gpt-5-6-sol": {"input": 5.0, "cached_input": 0.5, "output": 30.0},
 }
 

@@ -61,7 +61,7 @@ Install only the agents you use:
 
 | Agent | Installation | Authentication |
 | --- | --- | --- |
-| `gpt-5-6-sol` | `pixi run npm install -g --prefix "$HOME/.local" @openai/codex@0.153.4` | `pixi run codex login` |
+| `gpt-6-astra`, `gpt-5-6-sol` | `pixi run npm install -g --prefix "$HOME/.local" @openai/codex@0.153.4` | `pixi run codex login` |
 | `opus-5`, `fable-5` | [Claude Code](https://code.claude.com/docs/en/setup): `curl -fsSL https://claude.ai/install.sh \| bash` | Run `claude` and log in |
 | `kimi-k3` | `pixi run npm install -g --prefix "$HOME/.local" --omit=optional @moonshot-ai/kimi-code@0.29.2` | `.env`: `MOONSHOT_API_KEY="..."` for the Kimi Code coding endpoint |
 | `qwen3-8-max-preview` | `pixi run npm install -g --prefix "$HOME/.local" @qwen-code/qwen-code@0.21.0` | `.env`: `QWEN_API_KEY="..."` for Alibaba Cloud's international Coding Plan |

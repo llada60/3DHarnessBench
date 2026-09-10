@@ -83,6 +83,8 @@ class BatchLimitStop(RuntimeError):
 
 
 AGENT_SPECS = {
+    "gpt-6-astra": AgentSpec("codex_gpt_5_6_sol_raw.backend", "codex",
+                              "gpt-6-astra", "codex"),
     "gpt-5-6-sol": AgentSpec("codex_gpt_5_6_sol_raw.backend", "codex",
                               "gpt-5.6-sol", "codex"),
     "kimi-k3": AgentSpec("kimi_k3_raw.backend", "inline", "kimi-code-k3", "kimi"),
@@ -151,7 +153,7 @@ def load_prompt(prompt_path: Path, texture_renders: bool) -> str:
 
 
 def resolve_module(spec: AgentSpec):
-    """Import the internal backend for one of the seven public agents."""
+    """Import the internal backend for one of the public agents."""
     return importlib.import_module(spec.module)
 
 

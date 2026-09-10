@@ -8,6 +8,7 @@ The public experiment names are defined once in
 
 | Public name | Adapter kind |
 | --- | --- |
+| `gpt-6-astra` | `codex` |
 | `gpt-5-6-sol` | `codex` |
 | `kimi-k3` | `kimi` |
 | `opus-5` | `opus` |

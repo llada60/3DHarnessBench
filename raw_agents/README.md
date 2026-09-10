@@ -15,7 +15,7 @@ Credentials must never be committed:
 
 | Public agent | Credential source |
 | --- | --- |
-| `gpt-5-6-sol` | Codex CLI login or Codex API environment |
+| `gpt-6-astra`, `gpt-5-6-sol` | Codex CLI login or Codex API environment |
 | `kimi-k3` | `MOONSHOT_API_KEY` |
 | `opus-5`, `fable-5` | Claude Code login |
 | `qwen3-8-max-preview` | `QWEN_API_KEY` |

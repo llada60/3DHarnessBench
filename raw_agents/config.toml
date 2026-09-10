@@ -1,4 +1,4 @@
-# Reasoning effort defaults for the seven public experiment agents.
+# Reasoning effort defaults for the eight public experiment agents.
 
 [agent.codex]
 thinking_depth = "high"

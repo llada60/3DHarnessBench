@@ -41,6 +41,7 @@ class MCPAgentSpec:
 
 
 AGENT_SPECS = {
+    "gpt-6-astra": MCPAgentSpec("codex", "gpt-6-astra"),
     "gpt-5-6-sol": MCPAgentSpec("codex", "gpt-5.6-sol"),
     "kimi-k3": MCPAgentSpec("kimi", "k3"),
     "opus-5": MCPAgentSpec("opus", "claude-opus-5"),

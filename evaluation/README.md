@@ -1,7 +1,7 @@
 # Evaluation
 
 The public entry point is `evaluation/evaluate.py`. It evaluates outputs from
-Single-view, Multi-view, ActiveVisual, and Full3DInteraction for the seven
+Single-view, Multi-view, ActiveVisual, and Full3DInteraction for the eight
 agents registered in `raw_agents/agent_registry.py`. Complete the
 [evaluation installation steps](../INSTALL.md#4-add-data-and-evaluation-assets)
 first. This entry point automatically loads the checkout root `.env`, including
