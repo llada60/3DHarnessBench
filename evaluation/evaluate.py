@@ -21,6 +21,7 @@ import argparse
 import re
 import json
 import os
+import statistics
 import shutil
 import subprocess
 import sys
@@ -67,6 +68,7 @@ FINAL_METRIC_FILES = {
     "grey_shaded_dinov2": "image_similarity_dinov2_grey_shaded.json",
     "grey_shaded_dinov3": "image_similarity_dinov3_grey_shaded.json",
     "chamfer": "shape_chamfer.json",
+    "betti": "shape_betti.json",
     "uni3d": "shape_uni3d.json",
     "usage": "usage.json",
 }
@@ -385,6 +387,28 @@ def average_agent_latency(metrics_dir: Path, usage: dict) -> float | None:
         "usage", allow_none=True)
 
 
+def median_betti_relative_error(betti: dict) -> float:
+    """Return the median normalized L1 Betti error for valid instances."""
+    rows = betti.get("per_instance")
+    if not isinstance(rows, list):
+        raise ValueError("expected per_instance list in betti")
+    values = []
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            raise ValueError(f"expected object at betti.per_instance[{index}]")
+        if row.get("status") != "OK":
+            continue
+        value = row.get("relative_l1_error")
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError(
+                "expected numeric relative_l1_error at "
+                f"betti.per_instance[{index}]")
+        values.append(float(value))
+    if not values:
+        raise ValueError("no valid per-instance Betti relative errors")
+    return float(statistics.median(values))
+
+
 def write_final_metrics(
     metrics_dir: Path,
     grey_shaded_encoders: list[str] | None = None,
@@ -399,6 +423,7 @@ def write_final_metrics(
         for encoder in image_encoders
     }
     chamfer = read_metric_json(metrics_dir, "chamfer")
+    betti = read_metric_json(metrics_dir, "betti")
     uni3d = read_metric_json(metrics_dir, "uni3d")
     usage = read_metric_json(metrics_dir, "usage")
 
@@ -412,6 +437,7 @@ def write_final_metrics(
         **image_metrics,
         "chamfer": nested_number(
             chamfer, (chamfer_alignment_key, "penalized_mean"), "chamfer"),
+        "betti_l1": median_betti_relative_error(betti),
         "uni3d": nested_number(
             uni3d, ("cos_3d_3d", "penalized_mean"), "uni3d"),
         "uni3d_t_i_3d": nested_number(
@@ -422,8 +448,8 @@ def write_final_metrics(
         "avg_api_calls": rounded_integer(nested_number(
             usage, ("api_calls", "average_per_evaluated_instance"),
             "usage", allow_none=True)),
-        "avg_tokens": formatted_integer(nested_number(
-            usage, ("tokens", "total", "average_per_evaluated_instance"),
+        "avg_output_tokens": formatted_integer(nested_number(
+            usage, ("tokens", "output", "average_per_evaluated_instance"),
             "usage", allow_none=True)),
         "avg_latency_s": average_agent_latency(metrics_dir, usage),
         "avg_cost_usd": nested_number(
@@ -663,6 +689,11 @@ def metric_commands(args: argparse.Namespace, results_root: Path,
     add_instances(chamfer, names)
     commands.append(("metric:shape_chamfer", chamfer))
 
+    betti = [sys.executable, str(EVAL_ROOT / "metrics" / "shape_betti.py"),
+             *common, "--gt-glb-relpath", gt_glb_relpath]
+    add_instances(betti, names)
+    commands.append(("metric:shape_betti", betti))
+
     for encoder in args.image_encoders:
         image = [
             sys.executable, str(EVAL_ROOT / "metrics" / "image_similarity.py"),
@@ -773,6 +804,7 @@ def main() -> int:
         output_name = {
             "metric:usage": "usage.json",
             "metric:shape_chamfer": "shape_chamfer.json",
+            "metric:shape_betti": "shape_betti.json",
             "metric:shape_uni3d": "shape_uni3d.json",
         }.get(label)
         if label.startswith("metric:image_similarity:"):
@@ -792,7 +824,8 @@ def main() -> int:
             and label.startswith("metric:grey_shaded_image_similarity:"))
         shape_metric_invalidated = (
             glbs_changed
-            and label in ("metric:shape_chamfer", "metric:shape_uni3d")
+            and label in ("metric:shape_chamfer", "metric:shape_betti",
+                          "metric:shape_uni3d")
         )
         shape_metric_invalidated = shape_metric_invalidated or (
             renders_changed and label == "metric:shape_uni3d"
