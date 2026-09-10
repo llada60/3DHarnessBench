@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare graded outputs and run usage, shape, image, and Uni3D metrics.
+"""Prepare outputs and run usage, image, Chamfer, Betti, and Uni3D metrics.
 
 The graded runner writes results to::
 
@@ -7,7 +7,7 @@ The graded runner writes results to::
 
 This entry point renders missing four-view predictions, builds prediction
 GLBs, reads ``data/benchmark`` directly in its native layout, and runs usage,
-Chamfer, image similarity, and Uni3D.
+Chamfer, Betti normalized L1, image similarity, and Uni3D.
 
 Run from this project root, for example::
 
@@ -409,6 +409,49 @@ def median_betti_relative_error(betti: dict) -> float:
     return float(statistics.median(values))
 
 
+def median_betti_component_errors(betti: dict) -> dict[str, float]:
+    """Return median component contributions to normalized Betti L1 error.
+
+    Each component uses the same per-instance denominator as ``betti_l1``:
+    ``abs(beta_gt[i] - beta_reconstruction[i]) / sum(beta_gt)``.
+    """
+    rows = betti.get("per_instance")
+    if not isinstance(rows, list):
+        raise ValueError("expected per_instance list in betti")
+    component_errors: list[list[float]] = [[], [], []]
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            raise ValueError(f"expected object at betti.per_instance[{index}]")
+        if row.get("status") != "OK":
+            continue
+        gt = row.get("gt_betti")
+        reconstruction = row.get("reconstruction_betti")
+        if not (
+            isinstance(gt, list)
+            and isinstance(reconstruction, list)
+            and len(gt) == 3
+            and len(reconstruction) == 3
+            and all(isinstance(value, int) and not isinstance(value, bool)
+                    for value in gt + reconstruction)
+        ):
+            raise ValueError(
+                f"expected integer Betti vectors at betti.per_instance[{index}]")
+        denominator = sum(gt)
+        if denominator <= 0:
+            raise ValueError(
+                f"non-positive GT Betti L1 norm at betti.per_instance[{index}]")
+        for component in range(3):
+            component_errors[component].append(
+                abs(gt[component] - reconstruction[component]) / denominator)
+    if not component_errors[0]:
+        raise ValueError("no valid per-instance Betti component errors")
+    return {
+        f"beta_{component}_median_normalized_l1": float(
+            statistics.median(component_errors[component]))
+        for component in range(3)
+    }
+
+
 def write_final_metrics(
     metrics_dir: Path,
     grey_shaded_encoders: list[str] | None = None,
@@ -438,6 +481,7 @@ def write_final_metrics(
         "chamfer": nested_number(
             chamfer, (chamfer_alignment_key, "penalized_mean"), "chamfer"),
         "betti_l1": median_betti_relative_error(betti),
+        **median_betti_component_errors(betti),
         "uni3d": nested_number(
             uni3d, ("cos_3d_3d", "penalized_mean"), "uni3d"),
         "uni3d_t_i_3d": nested_number(

@@ -4,6 +4,8 @@ These modules are invoked by `../evaluate.py`:
 
 - `usage.py`: aggregates recorded attempts, tokens, API calls, costs and time.
 - `shape_chamfer.py`: bidirectional Chamfer distance, including yaw alignment.
+- `shape_betti.py`: normalized L1 error between generated/reference Z2 Betti
+  vectors; the headline aggregate is the median valid instance.
 - `image_similarity.py`: SigLIP2, DINOv2 and DINOv3 feature similarity with
   view-paired and best-assignment aggregation.
 - `shape_uni3d.py`: Uni3D-Giant/OpenCLIP image-to-3D and 3D-to-3D similarity.

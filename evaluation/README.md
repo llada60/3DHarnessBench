@@ -31,6 +31,7 @@ renders and GLBs, and invokes these internal metric workers:
 | --- | --- |
 | `metrics/usage.py` | attempts, tokens, API calls, provider cost and agent time |
 | `metrics/shape_chamfer.py` | generated/reference geometry distance |
+| `metrics/shape_betti.py` | normalized L1 error between generated/reference Z2 Betti vectors |
 | `metrics/image_similarity.py` | SigLIP2, DINOv2 and DINOv3 image similarity |
 | `metrics/shape_uni3d.py` | Uni3D image/3D and 3D/3D similarity |
 
@@ -43,7 +44,12 @@ procedural textures (`texture_baked` is recorded as false). The legacy
 The metric workers are implementation details; use the unified entry point.
 
 Per-metric JSON, `evaluation_run.json` and `final_metrics.json` are written in
-the agent's `_metrics/` directory. Missing provider accounting remains `null`.
+the agent's `_metrics/` directory. `shape_betti.json` records per-instance
+`[beta_0, beta_1, beta_2]` vectors and their GT-normalized L1 errors;
+`final_metrics.json` reports the median valid error as `betti_l1`, plus the
+median normalized contribution from each component as
+`beta_0_median_normalized_l1`, `beta_1_median_normalized_l1`, and
+`beta_2_median_normalized_l1`. Missing provider accounting remains `null`.
 Reported API price estimates are separate from provider-reported costs.
 Use `--image-encoders siglip2 dinov2` for a partial run without gated DINOv3;
 the final metrics include only the selected image encoders.
