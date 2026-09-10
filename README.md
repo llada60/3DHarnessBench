@@ -3,7 +3,7 @@
 
 <p align="center">
   🌐 <a href="https://llada60.github.io/3DHarnessBench/">Project Page</a> |
-  📄 arXiv (coming soon) |
+  📄 <a href="https://arxiv.org/abs/2609.06535">arXiv</a> |
   🤗 <a href="https://huggingface.co/datasets/lingada/3DHarnessBench">Benchmark</a>
 </p>
 
@@ -13,7 +13,6 @@
 
 ![3DHarnessBench: visual comparisons, agentic Blender reconstruction, and benchmark scores](teaser.png)
 
----
 
 > **Abstract:** We introduce 3DHarnessBench, a benchmark that evaluates the agentic ability of frontier vision-language models (VLMs) to recover 3D geometry as Blender Python code from a variety of inputs. Unlike previous frameworks that prompt the VLMs with a fixed input (e.g., a single rendering or a text description), 3DHarnessBench evaluates four separate harness settings that progressively enable active agentic exploration, facilitated by recent Blender MCP functionality. Our hierarchy from Single-view, Multi-view, Active Visual (arbitrary viewpoint access), and Full 3D Interaction (complete access to the target object through Blender function calls) probes the models' abilities in both visual perception and active inference, tool calling, and self-correction. We observe that the ability of all frontier models to recover 3D geometry improves significantly with richer function call access, although the improvements are strongly model-dependent, revealing highly uneven agentic 3D-to-code capabilities. We release the benchmark, code, outputs, and agent trajectories for reproducible 3D evaluation.
 
@@ -55,7 +54,6 @@
 Follow **[INSTALL.md](INSTALL.md)** to install Pixi, Blender **5.1.2** and agent
 CLIs, configure `.env`, and prepare evaluation weights. The target platform is
 **Linux x86-64 + NVIDIA GPU**; ActiveVisual and Full3DInteraction use Xvfb.
-The Linux installation and end-to-end validation checklist has been completed.
 
 Run commands from the repository root (`3DHarnessBench/`). All entry points load
 `.env` automatically; exported shell variables take precedence.
@@ -87,7 +85,7 @@ pixi run single-view \
 
 For **Multi-view**, replace `single-view` with `multi-view`.
 
-- `--agent`: agent to run; default **`kimi-k3`**. Supported names:
+- `--agent`: agent to run. Supported names:
   `gpt-6-astra`, `gpt-5-6-sol`, `kimi-k3`, `opus-5`, `fable-5`,
   `qwen3-8-max-preview`, `gemini3-1-pro`, `minimax-m3`.
 - `--data-path`: benchmark directory; default **`data/benchmark`**.
