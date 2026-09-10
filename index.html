@@ -138,13 +138,12 @@
         <!-- 6. RESULTS -->
         <section class="section container" id="results">
             <h2>Results</h2>
-            <p class="section-intro">Across 100 targets, seven frontier VLM agents, and four target-access settings,
+            <p class="section-intro">Across 100 targets, eight frontier VLM agents, and four target-access settings,
                 richer access generally improves reconstruction quality—but the gains depend strongly on the agent.</p>
             <div class="result-summary">
                 <div><b>100</b><span>target categories</span></div>
-                <div><b>7</b><span>frontier agents</span></div>
-                <div><b>4</b><span>harness settings</span></div>
-                <div><b>0.927</b><span>best Full-3D Uni3D</span></div>
+                <div><b id="agentCount">7</b><span>frontier agents</span></div>
+                <div><b id="harnessCount">4</b><span>harness settings</span></div>
             </div>
             <h3 class="subhead">Main Results</h3>
             <div class="two-col single-col">
@@ -153,7 +152,7 @@
                         aria-label="Interactive scatter plot of absolute Uni3D score and relative improvement over Single-view">
                         <div class="uni3d-chart-topbar">
                             <span class="uni3d-chart-hint">
-                                Toggle settings · tap an agent to focus · swipe the chart on mobile
+                                Tap an agent to focus
                             </span>
                             <button class="uni3d-reset" id="uni3dReset" type="button">Reset</button>
                         </div>
@@ -188,28 +187,33 @@
                     </noscript>
 
                     <figcaption>
-                        Uni3D 3D–3D similarity relative to Single-view (S1).
+                        Uni3D 3D–3D metric relative to Single-view (S1).
                     </figcaption>
                 </figure>
-                <!-- <div class="key-findings">
-                    <p><b>Multi-view helps consistently.</b> Four fixed views improve geometry over Single-view for all
-                        seven agents.</p>
-                    <p><b>Active Visual is the sharpest discriminator.</b> Multi-view → Active Visual ranges from
-                        <strong>+16.4%</strong> (Opus 5) to <strong>−16.5%</strong> (MiniMax M3) in Uni3D.
-                    </p>
-                    <p><b>Full 3D Interaction gives every agent its best geometry.</b> Opus 5 reaches Uni3D
-                        <strong>0.927</strong> and Chamfer <strong>0.002</strong>.
-                    </p>
-                </div> -->
             </div>
-            <div class="main-results-card">
-                <!-- <div class="main-results-head">
-                    <h4>Complete reconstruction metrics</h4>
-                    <span>4 harness settings × 7 agents</span>
-                </div> -->
+
+            <div class="main-results-card leaderboard-card">
+                <div class="leaderboard-head">
+                    <div>
+                        <h4>Benchmark leaderboard</h4>
+                    </div>
+                    <a class="leaderboard-data-link" href="assets/data/main_results.csv" download>Download CSV</a>
+                </div>
+                <div class="leaderboard-controls">
+                    <label>
+                        <span>Harness</span>
+                        <select id="leaderboardHarness" aria-label="Choose a harness setting"></select>
+                    </label>
+                    <label>
+                        <span>Rank by</span>
+                        <select id="leaderboardMetric" aria-label="Choose a ranking metric"></select>
+                    </label>
+                    <span class="leaderboard-status" id="leaderboardStatus" role="status" aria-live="polite">Loading
+                        latest results…</span>
+                </div>
                 <div class="table-scroll main-results-scroll" role="region" tabindex="0"
-                    aria-label="Main results table; swipe horizontally to view all columns">
-                    <table class="main-results-table">
+                    aria-label="Agent leaderboard; swipe horizontally to view all columns">
+                    <table class="main-results-table leaderboard-table" id="mainLeaderboard">
                         <thead>
                             <tr>
                                 <th>Agent</th>
@@ -248,13 +252,23 @@
                             </tr>
                             <tr>
                                 <td>GPT-5.6 Sol</td>
-                                <td><b>0.915</b></td>
+                                <td>0.915</td>
                                 <td>0.714</td>
                                 <td>0.783</td>
                                 <td>0.016</td>
                                 <td>0.715</td>
                                 <td>0.332</td>
                                 <td>1.000</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-6 Astra</td>
+                                <td><b>0.941</b></td>
+                                <td><b>0.808</b></td>
+                                <td><b>0.851</b></td>
+                                <td><b>0.010</b></td>
+                                <td><b>0.794</b></td>
+                                <td>0.345</td>
+                                <td>0.892</td>
                             </tr>
                             <tr>
                                 <td>Kimi K3</td>
@@ -269,10 +283,10 @@
                             <tr>
                                 <td>Qwen 3.8 Max</td>
                                 <td>0.913</td>
-                                <td><b>0.731</b></td>
+                                <td>0.731</td>
                                 <td>0.777</td>
                                 <td>0.017</td>
-                                <td><b>0.740</b></td>
+                                <td>0.740</td>
                                 <td><b>0.346</b></td>
                                 <td>0.835</td>
                             </tr>
@@ -301,12 +315,12 @@
                             </tr>
                             <tr>
                                 <td>Fable 5</td>
-                                <td><b>0.927</b></td>
+                                <td>0.927</td>
                                 <td>0.760</td>
                                 <td>0.811</td>
-                                <td><b>0.011</b></td>
+                                <td>0.011</td>
                                 <td>0.764</td>
-                                <td><b>0.345</b></td>
+                                <td>0.345</td>
                                 <td>0.805</td>
                             </tr>
                             <tr>
@@ -314,7 +328,7 @@
                                 <td>0.921</td>
                                 <td>0.738</td>
                                 <td>0.796</td>
-                                <td><b>0.011</b></td>
+                                <td>0.011</td>
                                 <td>0.748</td>
                                 <td>0.343</td>
                                 <td>0.931</td>
@@ -322,12 +336,22 @@
                             <tr>
                                 <td>GPT-5.6 Sol</td>
                                 <td>0.925</td>
-                                <td><b>0.764</b></td>
-                                <td><b>0.816</b></td>
+                                <td>0.764</td>
+                                <td>0.816</td>
                                 <td>0.015</td>
                                 <td>0.745</td>
                                 <td>0.326</td>
                                 <td>1.000</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-6 Astra</td>
+                                <td><b>0.955</b></td>
+                                <td><b>0.859</b></td>
+                                <td><b>0.896</b></td>
+                                <td><b>0.006</b></td>
+                                <td><b>0.842</b></td>
+                                <td><b>0.349</b></td>
+                                <td>0.926</td>
                             </tr>
                             <tr>
                                 <td>Kimi K3</td>
@@ -344,8 +368,8 @@
                                 <td>0.920</td>
                                 <td>0.753</td>
                                 <td>0.805</td>
-                                <td><b>0.011</b></td>
-                                <td><b>0.768</b></td>
+                                <td>0.011</td>
+                                <td>0.768</td>
                                 <td>0.344</td>
                                 <td>0.768</td>
                             </tr>
@@ -384,13 +408,13 @@
                             </tr>
                             <tr>
                                 <td>Opus 5</td>
-                                <td><b>0.939</b></td>
-                                <td><b>0.796</b></td>
-                                <td><b>0.843</b></td>
-                                <td><b>0.004</b></td>
-                                <td><b>0.871</b></td>
+                                <td>0.939</td>
+                                <td>0.796</td>
+                                <td>0.843</td>
+                                <td>0.004</td>
+                                <td>0.871</td>
                                 <td>0.347</td>
-                                <td><b>0.611</b></td>
+                                <td>0.611</td>
                             </tr>
                             <tr>
                                 <td>GPT-5.6 Sol</td>
@@ -401,6 +425,16 @@
                                 <td>0.823</td>
                                 <td>0.342</td>
                                 <td>0.864</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-6 Astra</td>
+                                <td><b>0.952</b></td>
+                                <td><b>0.846</b></td>
+                                <td><b>0.882</b></td>
+                                <td><b>0.003</b></td>
+                                <td><b>0.912</b></td>
+                                <td><b>0.349</b></td>
+                                <td><b>0.400</b></td>
                             </tr>
                             <tr>
                                 <td>Kimi K3</td>
@@ -458,13 +492,13 @@
                             </tr>
                             <tr>
                                 <td>Opus 5</td>
-                                <td><b>0.957</b></td>
-                                <td><b>0.842</b></td>
-                                <td><b>0.883</b></td>
-                                <td><b>0.002</b></td>
-                                <td><b>0.927</b></td>
-                                <td><b>0.347</b></td>
-                                <td><b>0.473</b></td>
+                                <td>0.957</td>
+                                <td>0.842</td>
+                                <td>0.883</td>
+                                <td>0.002</td>
+                                <td>0.927</td>
+                                <td>0.347</td>
+                                <td>0.473</td>
                             </tr>
                             <tr>
                                 <td>GPT-5.6 Sol</td>
@@ -475,6 +509,16 @@
                                 <td>0.879</td>
                                 <td>0.342</td>
                                 <td>0.677</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-6 Astra</td>
+                                <td><b>0.964</b></td>
+                                <td><b>0.881</b></td>
+                                <td><b>0.911</b></td>
+                                <td><b>0.001</b></td>
+                                <td><b>0.956</b></td>
+                                <td><b>0.350</b></td>
+                                <td><b>0.060</b></td>
                             </tr>
                             <tr>
                                 <td>Kimi K3</td>
@@ -519,8 +563,10 @@
                         </tbody>
                     </table>
                 </div>
-                <p class="table-note">Bold marks the best displayed value within each setting. ↑ higher is better; ↓
-                    lower is better.</p>
+                <p class="table-note">Bold marks the best displayed
+                    value. ↑ higher is better; ↓ lower is better.</p>
+                <p class="leaderboard-update-note"><strong>Update:</strong> GPT-6 Astra results were added after the
+                    initial release of the benchmark.</p>
             </div>
             <h3 class="subhead">Geometric Grounding Analysis</h3>
             <div class="three-cards">
@@ -717,6 +763,15 @@
                                 <td>664</td>
                             </tr>
                             <tr>
+                                <td>GPT-6 Astra</td>
+                                <td>4</td>
+                                <td>–</td>
+                                <td>4.01</td>
+                                <td>17,896</td>
+                                <td>1.39*</td>
+                                <td>589</td>
+                            </tr>
+                            <tr>
                                 <td>Kimi K3</td>
                                 <td>15</td>
                                 <td>–</td>
@@ -781,6 +836,15 @@
                                 <td>34,308</td>
                                 <td>1.47*</td>
                                 <td>744</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-6 Astra</td>
+                                <td>4</td>
+                                <td>–</td>
+                                <td>4.04</td>
+                                <td>19,225</td>
+                                <td>1.56*</td>
+                                <td>643</td>
                             </tr>
                             <tr>
                                 <td>Kimi K3</td>
@@ -849,6 +913,15 @@
                                 <td>939</td>
                             </tr>
                             <tr>
+                                <td>GPT-6 Astra</td>
+                                <td>29</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>13,771</td>
+                                <td>3.05*</td>
+                                <td>612</td>
+                            </tr>
+                            <tr>
                                 <td>Kimi K3</td>
                                 <td>114</td>
                                 <td>41</td>
@@ -914,6 +987,15 @@
                                 <td>50,484</td>
                                 <td>4.54*</td>
                                 <td>1,344</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-6 Astra</td>
+                                <td>29</td>
+                                <td>–</td>
+                                <td>–</td>
+                                <td>14,096</td>
+                                <td>3.36*</td>
+                                <td>712</td>
                             </tr>
                             <tr>
                                 <td>Kimi K3</td>
@@ -996,13 +1078,6 @@
         primaryClass={cs.CV},
         url={https://arxiv.org/abs/2609.06535},
     }</code></pre>
-                </div>
-
-                <p class="footer-note">
-                    Project page for 3DHarnessBench. Paper / code / benchmark links can be set in
-                    <code>config.js</code>.
-                </p>
-            </div>
         </section>
     </main>
     <script src="config.js"></script>
