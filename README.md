@@ -191,13 +191,20 @@ limitations.
 
 ## Citation
 
-Paper citation metadata will be added when the paper is available.
+If you find our work useful, please consider citing:
 
-## Contributing
+```bibtex
+@misc{liu20263dharnessbench,
+  title         = {3DHarnessBench: Probing Agentic 3D-to-Code Capabilities of Frontier Vision-Language Models},
+  author        = {Ling Liu and Bingchen Gong and Amal Dev Parakkat and Maks Ovsjanikov},
+  year          = {2026},
+  eprint        = {2609.06535},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2609.06535}
+}
+```
 
-Bug reports and focused pull requests are welcome. See
-[CONTRIBUTING.md](CONTRIBUTING.md) for the development checks, contribution
-workflow and inbound licensing terms.
 
 ## License
 
@@ -205,8 +212,7 @@ Project software is licensed under
 [GPL-3.0-only](LICENSE). Original documentation, standalone prompt templates,
 skills, project images and 3DHarnessBench content are licensed under
 [CC BY 4.0](LICENSES/CC-BY-4.0.txt), attributed to `llada60`. Bundled
-BlenderMCP-derived code remains under MIT. See [LICENSING.md](LICENSING.md) and
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for exact boundaries.
+BlenderMCP-derived code remains under MIT. See [LICENSING.md](LICENSING.md).
 
 Third-party models, weights and downloaded dependencies retain their own terms.
 Benchmark assets, outputs, model caches and the local `.env` are excluded from
