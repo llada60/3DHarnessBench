@@ -1,6 +1,20 @@
 const links=window.PROJECT_LINKS||{};
 [['paperLink','paper'],['codeLink','code'],['dataLink','data']].forEach(([id,key])=>{const el=document.getElementById(id);if(el&&links[key]){el.href=links[key];el.classList.remove('disabled');el.removeAttribute('aria-disabled');el.querySelector('span')?.remove();el.target='_blank';el.rel='noopener'}});
 
+const sectionMenu=document.getElementById('sectionMenu');
+if(sectionMenu){
+  sectionMenu.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>{sectionMenu.open=false}));
+  document.addEventListener('click',event=>{
+    if(sectionMenu.open&&!sectionMenu.contains(event.target))sectionMenu.open=false;
+  });
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&sectionMenu.open){
+      sectionMenu.open=false;
+      sectionMenu.querySelector('summary')?.focus();
+    }
+  });
+}
+
 const galleryImage=document.getElementById('galleryImage');
 const galleryCaption=document.getElementById('galleryCaption');
 document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
