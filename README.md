@@ -7,9 +7,6 @@
   🤗 <a href="https://huggingface.co/datasets/lingada/3DHarnessBench">Benchmark</a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/llada60/3DHarnessBench/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/llada60/3DHarnessBench/actions/workflows/ci.yml/badge.svg"></a>
-</p>
 
 ![3DHarnessBench: visual comparisons, agentic Blender reconstruction, and benchmark scores](teaser.png)
 
