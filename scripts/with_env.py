@@ -3,14 +3,17 @@
 
 import os
 import sys
-from pathlib import Path
+from core.harness.project_env import load_project_env
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "raw_agents"))
-from project_env import load_project_env  # noqa: E402
+
+def main(argv: list[str] | None = None) -> int:
+    """Replace this process with the requested command after loading .env."""
+    args = sys.argv[1:] if argv is None else argv
+    if not args:
+        raise SystemExit("Usage: pixi run env-run COMMAND [ARG ...]")
+    load_project_env()
+    os.execvp(args[0], args)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        raise SystemExit("Usage: pixi run env-run COMMAND [ARG ...]")
-    load_project_env()
-    os.execvp(sys.argv[1], sys.argv[1:])
+    raise SystemExit(main())

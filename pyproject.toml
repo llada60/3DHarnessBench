@@ -1,9 +1,9 @@
 [project]
 name = "graded-3d-interaction-experiments"
-version = "1.0.0"
+version = "2.0.0"
 description = "Standalone Blender reconstruction experiments and evaluation"
 readme = "README.md"
-license = "GPL-3.0-only"
+license = "Apache-2.0"
 requires-python = ">=3.13,<3.14"
 keywords = ["blender", "3d-reconstruction", "visual-agents", "evaluation"]
 dependencies = []
@@ -136,12 +136,12 @@ CARGO_BUILD_JOBS = "64"
 UV_CONCURRENT_BUILDS = "1"
 
 [tool.pixi.tasks]
-single-view = "python scripts/Single-view/run.py"
-multi-view = "python scripts/Multi-view/run.py"
-active-visual = "python scripts/ActiveVisual/run.py"
-full-3d-interaction = "python scripts/Full3DInteraction/run.py"
-evaluate = "python evaluation/evaluate.py"
-env-run = "python scripts/with_env.py"
+single-view = "python -m tasks.single_view.run"
+multi-view = "python -m tasks.multi_view.run"
+active-visual = "python -m tasks.active_visual.run"
+full-3d-interaction = "python -m tasks.full_3d_interaction.run"
+evaluate = "python -m metrics.evaluate"
+env-run = "python -m scripts.with_env"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -151,6 +151,6 @@ target-version = "py313"
 
 [tool.ruff.lint]
 # Establish a small, stable baseline for syntax errors, invalid control flow,
-# undefined names and similarly critical failures without reformatting the
-# research codebase.
-select = ["E9", "F63", "F7", "F82"]
+# undefined names, import order and similarly critical failures without
+# reformatting the research codebase.
+select = ["E402", "E9", "F63", "F7", "F82"]

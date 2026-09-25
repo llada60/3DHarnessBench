@@ -1,0 +1,18 @@
+3DHarnessBench
+
+Copyright (c) 2026 llada60.
+
+Original source code, configuration, and executable scripts in this repository
+are licensed under the Apache License, Version 2.0; see LICENSE.
+
+The paper, documentation, standalone prompt templates, skills, and project
+images are also covered by the Apache License, Version 2.0.
+
+The bundled BlenderMCP-derived components are separate third-party materials
+and retain the MIT licenses included in:
+
+  core/blender_mcp/core/LICENSE
+  core/blender_mcp/viewport_only/LICENSE
+
+Benchmark assets, model weights, downloaded dependencies, and other external
+materials retain their own licenses and are not covered by this notice.

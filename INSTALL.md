@@ -51,9 +51,15 @@ Set the executable path in `.env`, then add the API keys needed in step 3:
 BLENDER="tools/blender-5.1.2-linux-x64/blender"
 ```
 
-All four runners and `evaluation/evaluate.py` load `.env` on every launch, and
+All four runners and `metrics/evaluate.py` load `.env` on every launch, and
 child processes inherit it. Exported shell variables take precedence; no manual
 `source .env` is needed. See [.env.example](.env.example) for optional GPU settings.
+
+For other commands that need the same environment, use
+`pixi run env-run COMMAND [ARG ...]`. The equivalent Python invocation from
+the repository root is `python -m scripts.with_env COMMAND [ARG ...]`.
+This wrapper loads `.env`, forwards the command and arguments, and propagates
+the command's exit status.
 
 ## 3. Install and log in to your agent
 
@@ -90,7 +96,7 @@ Claude API billing uses `ANTHROPIC_API_KEY` in `.env`.
 For ActiveVisual/Full3DInteraction, prepare the local MCP service:
 
 ```bash
-pixi run uv sync --directory BlenderMCP/viewport_only --locked
+pixi run uv sync --directory core/blender_mcp/viewport_only --locked
 ```
 
 The official Blender MCP source is downloaded automatically on first use.
@@ -98,15 +104,15 @@ The official Blender MCP source is downloaded automatically on first use.
 ## 4. Add data and evaluation assets
 
 Download the [benchmark](https://huggingface.co/datasets/lingada/3DHarnessBench)
-and place the instance directories under `data/benchmark/`, following the
-[data layout](data/benchmark/README.md).
+and place the instance directories under `benchmark/`, following the
+[data layout](benchmark/README.md).
 
 Clone the Uni3D source (skip if already present):
 
 ```bash
-mkdir -p evaluation/external
-git clone --depth 1 https://github.com/baaivision/Uni3D.git evaluation/external/Uni3D
-test -f "${UNI3D_REPO:-evaluation/external/Uni3D}/models/point_encoder.py"
+mkdir -p metrics/external
+git clone --depth 1 https://github.com/baaivision/Uni3D.git metrics/external/Uni3D
+test -f "${UNI3D_REPO:-metrics/external/Uni3D}/models/point_encoder.py"
 ```
 
 `UNI3D_REPO` may point to another local checkout. Evaluation checks for the
@@ -139,7 +145,7 @@ pixi run single-view --agent gpt-5-6-sol \
   --tasks VaseFactory --iterations 0 --num-parallel 1 \
   --output-dir outputs/install-check
 
-pixi run python evaluation/evaluate.py --setting Single-view --agent gpt-5-6-sol \
+pixi run python -m metrics.evaluate --setting Single-view --agent gpt-5-6-sol \
   --tasks VaseFactory --output-dir outputs/install-check \
   --num-parallel 1 --device cuda --batch-size 1
 ```
@@ -155,8 +161,12 @@ Uni3D still runs, but this omits one image encoder. A `--dry-run` checks inputs
 without agent/model execution and does not establish runtime success.
 
 See [README.md](README.md#running-3dharnessbench) for all four settings, benchmark
-parameters and resumption, and [evaluation/README.md](evaluation/README.md) for
+parameters and resumption, and [metrics/README.md](metrics/README.md) for
 metric details and GLB export limitations.
+
+To navigate the implementation after setup, see the
+[Single-view](core/README.md#single-view) and
+[ActiveVisual](core/README.md#activevisual) code reading paths.
 
 ## 6. Linux release-validation checklist
 
@@ -166,7 +176,7 @@ validated:
 - [ ] `nvidia-smi` detects the intended GPU and driver.
 - [ ] `pixi install --locked` completes without changing `pixi.lock`.
 - [ ] The selected agent CLI version and authentication checks succeed.
-- [ ] `pixi run uv sync --directory BlenderMCP/viewport_only --locked`
+- [ ] `pixi run uv sync --directory core/blender_mcp/viewport_only --locked`
       completes.
 - [ ] The Uni3D `models/point_encoder.py` check in step 4 succeeds.
 - [ ] All five public entry points accept `--help`.

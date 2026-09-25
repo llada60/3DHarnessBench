@@ -31,20 +31,27 @@ tools/
 # Experiment and evaluation artifacts
 outputs/
 grey_shaded_outputs/
-evaluation/external/
-evaluation/results/
-evaluation/**/_metrics/
-scripts/*/.cache/
-scripts/.runtime-*/
+metrics/external/
+metrics/results/
+metrics/**/_metrics/
+tasks/*/.cache/
+tasks/.runtime-*/
+.remote-blender/
 
 # Benchmark assets are distributed separately.
-data/benchmark/*
-!data/benchmark/README.md
+benchmark/*
+!benchmark/README.md
+
+# Keep downloads in older checkouts untracked during layout migration.
+data/benchmark/
+evaluation/external/
+evaluation/results/
+scripts/*/.cache/
 
 # Optional local dependency staging; dependencies come from pyproject.toml.
-raw_agents/vendor/
-raw_agents/input/
-raw_agents/output/
+core/harness/vendor/
+core/harness/input/
+core/harness/output/
 
 # Runtime logs and Blender backups
 *.log
