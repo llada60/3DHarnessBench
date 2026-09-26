@@ -110,6 +110,11 @@ CLIs, configure `.env`, and prepare evaluation weights. The target platform is
 Run commands from the repository root (`3DHarnessBench/`). All entry points load
 `.env` automatically; exported shell variables take precedence.
 
+Project modules use package imports, and Python subprocesses use `python -m`.
+Resource paths are relative to the repository root; Blender workers import their
+entry modules through `--python-expr`. Custom prompts and add-ons are selected
+by importable module name, rather than by Python source-file path.
+
 ## Download the Benchmark
 
 Download [3DHarnessBench from Hugging Face](https://huggingface.co/datasets/lingada/3DHarnessBench)
@@ -160,6 +165,10 @@ Repeat the same command to resume. If changing checkpoint settings such as
 ActiveVisual lets the agent inspect a restricted reference Blender and build in
 a separate editable Blender. Full3DInteraction provides full MCP access to one
 Blender containing the reference.
+
+Both tasks use a verified upstream Blender MCP commit without runtime source
+patches. Local checkouts and forks can be selected explicitly; see
+[MCP source configuration and screenshot compatibility](core/blender_mcp/README.md).
 
 ```bash
 pixi run active-visual \

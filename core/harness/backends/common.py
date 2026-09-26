@@ -7,9 +7,7 @@ import time
 from pathlib import Path
 
 from core.blender_runtime import blender_environment
-from core.paths import CORE_ROOT
 
-RENDER_PY = CORE_ROOT / "render.py"
 RENDER_VIEW_NAMES = ("Image_005.png", "Image_015.png", "Image_025.png", "Image_035.png")
 
 
@@ -71,8 +69,8 @@ def render_script(script_path: Path, renders_dir: Path, args):
         args.blender,
         "--background",
         "--python-use-system-env",
-        "--python",
-        str(RENDER_PY),
+        "--python-expr",
+        "from core.render import main; main()",
         "--",
         "--blender-render",
         "--script",

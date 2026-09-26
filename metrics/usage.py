@@ -16,8 +16,7 @@ import os
 from pathlib import Path
 
 
-EVAL_ROOT = Path(os.environ.get("EVAL_ROOT")
-                 or Path(__file__).resolve().parent)
+EVAL_ROOT = Path(os.environ.get("EVAL_ROOT", "metrics"))
 DEFAULT_RESULTS_ROOT = EVAL_ROOT / "results"
 TOKEN_KEYS = ("input", "input_cached", "cache_write", "output",
               "reasoning", "total")

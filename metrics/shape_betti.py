@@ -29,8 +29,7 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import connected_components
 
 
-EVAL_ROOT = Path(os.environ.get("EVAL_ROOT")
-                 or Path(__file__).resolve().parent)
+EVAL_ROOT = Path(os.environ.get("EVAL_ROOT", "metrics"))
 DEFAULT_DATA_ROOT = EVAL_ROOT.parent / "benchmark"
 
 

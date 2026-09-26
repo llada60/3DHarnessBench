@@ -62,13 +62,12 @@ from core.agents.blender_ipc import (BlenderIPCError, configure_gpu_environment,
                          export_official_text_block, official_scene_summary,
                          prepare_reference_scene,
                          save_blend, save_official_blend, scene_summary)
-from tasks.active_visual import official_source
+from core.blender_mcp import source as mcp_source
 from core.paths import CONFIGS_ROOT, PROJECT_ROOT, PROMPTS_ROOT
 
 from core.harness.usage_accounting import (agent_latency_metadata,
                               mcp_agent_seconds)
 
-HERE = Path(__file__).resolve().parent
 REPO = PROJECT_ROOT
 CONFIG_PATH = CONFIGS_ROOT / "active_visual.toml"
 PROMPT_DIR = PROMPTS_ROOT / "active_visual"
@@ -77,8 +76,9 @@ SKILL_SOURCE = PROMPTS_ROOT / SKILL_NAME
 # Runner-owned publication contract. Agents maintain reconstruction_gt.py in
 # Blender; this harness exports that existing Text datablock as <instance>.py.
 RECONSTRUCTION_TEXT_BLOCK = "reconstruction_gt.py"
-START_SCRIPT = HERE / "start-remote-blender.sh"
-STOP_SCRIPT = HERE / "stop-remote-blender.sh"
+# Shell subprocesses run with cwd=REPO.
+START_SCRIPT = "tasks/active_visual/start-remote-blender.sh"
+STOP_SCRIPT = "tasks/active_visual/stop-remote-blender.sh"
 
 
 # --------------------------------------------------------------------------
@@ -209,7 +209,7 @@ def task_prompt(prompt: Path) -> str:
         "reference it selects before touching Blender, then complete the GT "
         "reconstruction."
     )
-    if prompt.resolve() == (SKILL_SOURCE / "SKILL.md").resolve():
+    if prompt.samefile(SKILL_SOURCE / "SKILL.md"):
         return invocation
     return (
         f"{invocation}\n\nAdditional task-specific instructions:\n\n"
@@ -371,7 +371,7 @@ def stage_inputs(task_dir: Path, prompt: Path, ref: Path | None,
             staged.append(None)
             continue
         dst = task_dir / name
-        if src.resolve() != dst.resolve():
+        if not dst.exists() or not src.samefile(dst):
             shutil.copy2(src, dst)
         staged.append(dst)
     return staged[0], staged[1]
@@ -729,7 +729,7 @@ def run_task(task: str, cfg: dict, args: argparse.Namespace) -> dict:
     agent_cfg["token_total_limit"] = cfg["agent"].get("token_total_limit", 0)
     timeout = args.timeout or int(cfg["run"]["timeout_sec"])
     agent = agents.build(kind, agent_cfg, REPO, timeout)
-    official_checkout = official_source.ensure_source(REPO, cfg)
+    official_checkout = mcp_source.ensure_source(REPO, cfg)
     use_official_workspace_server(agent, official_checkout)
     xpra_enabled = (args.xpra if args.xpra is not None
                     else bool(cfg["blender"].get("xpra", False)))

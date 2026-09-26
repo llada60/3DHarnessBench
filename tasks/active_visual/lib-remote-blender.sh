@@ -38,7 +38,7 @@
 : "${LIGHT_REF_EXTENT:=2.5}"
 # Optional .blend checkpoints, one per instance. When set, Blender OPENS that
 # file (it is passed as the positional file argument, so it loads before
-# --python runs the bootstrap and the add-on registers into the restored scene).
+# the bootstrap module runs and the add-on registers into the restored scene).
 # This is how a harness resumes an interrupted run: the whole file comes back --
 # objects, materials, world, render settings and the saved UI/viewport state --
 # not just the geometry an importer would carry. VIEWPORT_ONLY_BLEND replaces
@@ -50,9 +50,9 @@
 : "${PORTS_FILE:=}"
 
 : "${OFFICIAL_BLENDER_MCP_SOURCE:=}"
-BENCHMARK_REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
-: "${VIEWPORT_ONLY_MCP_DIR:=$BENCHMARK_REPO_ROOT/core/blender_mcp/viewport_only}"
-: "${BLENDERMCP_SCRIPTS_DIR:=$BENCHMARK_REPO_ROOT/core/blender_mcp/scripts}"
+BENCHMARK_REPO_ROOT="$PWD"
+# Custom add-ons must be importable packages (installed or on PYTHONPATH).
+: "${VIEWPORT_ONLY_ADDON_MODULE:=core.blender_mcp.viewport_only.addon}"
 
 # Empty until port selection, so random and explicit ports remain exclusive.
 : "${FULL_ACCESS_PORT:=}"
@@ -61,14 +61,6 @@ BENCHMARK_REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 # Blender binary. The BlenderMCP launcher uses BLENDER_MCP_BLENDER_BIN; we honour
 # that name plus BLENDER_BIN, then fall back to the copies shipped in this repo.
 : "${STARTUP_TIMEOUT:=90}"
-
-# ---------------------------------------------------------------------------
-# Derived paths (fixed by the BlenderMCP layout, not guessed)
-# ---------------------------------------------------------------------------
-UPSTREAM_BOOTSTRAP="$BLENDERMCP_SCRIPTS_DIR/blender_mcp_bootstrap.py"
-BOOTSTRAP="$SCRIPT_DIR/blender_bootstrap.py"
-OFFICIAL_BOOTSTRAP="$SCRIPT_DIR/official_blender_bootstrap.py"
-VIEWPORT_ONLY_ADDON="$VIEWPORT_ONLY_MCP_DIR/addon.py"
 
 # Everything below hangs off RUNTIME_DIR, which the scripts may override from a
 # command-line flag AFTER this file is sourced (ActiveVisual gives each task its
@@ -360,12 +352,7 @@ blender_version() {
 validate_config() {
     test -d "$OFFICIAL_BLENDER_MCP_SOURCE/mcp" || die "official MCP source missing: $OFFICIAL_BLENDER_MCP_SOURCE"
     test -d "$OFFICIAL_BLENDER_MCP_SOURCE/addon" || die "official MCP add-on missing: $OFFICIAL_BLENDER_MCP_SOURCE/addon"
-    test -d "$VIEWPORT_ONLY_MCP_DIR"  || die "viewport_only MCP dir missing: $VIEWPORT_ONLY_MCP_DIR"
-    test -d "$BLENDERMCP_SCRIPTS_DIR" || die "BlenderMCP scripts dir missing: $BLENDERMCP_SCRIPTS_DIR"
-    test -f "$BOOTSTRAP"              || die "graded bootstrap script missing: $BOOTSTRAP"
-    test -f "$UPSTREAM_BOOTSTRAP"     || die "upstream bootstrap script missing: $UPSTREAM_BOOTSTRAP"
-    test -f "$OFFICIAL_BOOTSTRAP"     || die "official bootstrap missing: $OFFICIAL_BOOTSTRAP"
-    test -f "$VIEWPORT_ONLY_ADDON"    || die "viewport_only add-on missing: $VIEWPORT_ONLY_ADDON"
+
 
     [[ "$FULL_ACCESS_PORT"   =~ ^[0-9]+$ ]] || die "full_access port is not numeric: $FULL_ACCESS_PORT"
     [[ "$VIEWPORT_ONLY_PORT" =~ ^[0-9]+$ ]] || die "viewport_only port is not numeric: $VIEWPORT_ONLY_PORT"

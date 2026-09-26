@@ -24,11 +24,12 @@ from types import MethodType
 from core.agents import agents as AGENTS, checkpoint as CHECKPOINT
 from core.agents import blender_ipc as BLENDER_IPC
 from core.blender_runtime import blender_environment
+from core.blender_mcp.runtime import server_spec
+from core.blender_mcp.source import ensure_source
 from core.harness.project_env import runtime_lock_path
 from core.harness.usage_accounting import agent_latency_metadata, mcp_agent_seconds
 from core.paths import CONFIGS_ROOT, PROJECT_ROOT, PROMPTS_ROOT
 
-HERE = Path(__file__).resolve().parent
 REPO = PROJECT_ROOT
 CONFIG_PATH = CONFIGS_ROOT / "full_3d_interaction.toml"
 PROMPT_DIR = PROMPTS_ROOT / "full_3d_interaction"
@@ -40,67 +41,6 @@ RECONSTRUCTION_TEXT_BLOCK = "reconstruction_gt.py"
 # Shared by both MCP modes so Blender stacks cannot race while selecting a
 # port/display and bringing their listeners up.
 START_LOCK_NAME = "active-visual-stack-start.lock"
-SOURCE_LOCK_NAME = "official-blender-mcp-source.lock"
-
-# Blender's window screenshot operators return an all-black framebuffer under
-# Xvfb even though the 3D viewport itself is rendering.  Keep the official MCP
-# interface and transport, but replace its VIEW_3D capture implementation with
-# Blender's compositing-independent GPUOffScreen path.  Other editor types keep
-# using the upstream screenshot operator.
-HEADLESS_SCREENSHOT_MARKER = "# ActiveVisual Xvfb compatibility: GPUOffScreen"
-HEADLESS_SCREENSHOT_STOCK = '''        with context.temp_override(window=window, area=area):
-            try:
-                bpy.ops.screen.screenshot_area(filepath=filepath_screenshot)
-            except RuntimeError as ex:
-                return Result(status="error", message=str(ex))
-'''
-HEADLESS_SCREENSHOT_REPLACEMENT = '''        if params.area_ui_type == "VIEW_3D":
-            # ActiveVisual Xvfb compatibility: GPUOffScreen
-            region = next((r for r in area.regions if r.type == "WINDOW"), None)
-            space = area.spaces.active
-            if region is None or space is None:
-                return Result(status="error", message="No drawable VIEW_3D region")
-            try:
-                import gpu
-                import numpy as np
-
-                width, height = region.width, region.height
-                offscreen = gpu.types.GPUOffScreen(width, height)
-                try:
-                    r3d = space.region_3d
-                    offscreen.draw_view3d(
-                        context.scene, context.view_layer, space, region,
-                        r3d.view_matrix, r3d.window_matrix,
-                        do_color_management=True,
-                    )
-                    buffer = offscreen.texture_color.read()
-                finally:
-                    offscreen.free()
-
-                buffer.dimensions = width * height * 4
-                pixels = np.asarray(buffer, dtype=np.float32) / 255.0
-                image = bpy.data.images.new(
-                    "official_mcp_viewport", width, height, alpha=True,
-                )
-                try:
-                    image.pixels.foreach_set(pixels.ravel())
-                    image.filepath_raw = filepath_screenshot
-                    image.file_format = "PNG"
-                    image.save()
-                finally:
-                    bpy.data.images.remove(image)
-            except Exception as ex:  # returned through MCP
-                return Result(status="error", message="Offscreen capture failed: " + str(ex))
-        else:
-            with context.temp_override(window=window, area=area):
-                try:
-                    bpy.ops.screen.screenshot_area(filepath=filepath_screenshot)
-                except RuntimeError as ex:
-                    return Result(status="error", message=str(ex))
-'''
-MCP_DEPENDENCY_STOCK = '"mcp[cli]>=1.2.0",'
-MCP_DEPENDENCY_COMPAT_MAJOR = '"mcp[cli]>=1.2.0,<2",'
-MCP_DEPENDENCY_PINNED = '"mcp[cli]==1.29.0",'
 
 
 def resolve(value: str | os.PathLike) -> Path:
@@ -185,7 +125,7 @@ def task_prompt(prompt: Path) -> str:
         "reference it selects before touching Blender, then complete the GT "
         "reconstruction."
     )
-    if prompt.resolve() == (SKILL_SOURCE / "SKILL.md").resolve():
+    if prompt.samefile(SKILL_SOURCE / "SKILL.md"):
         return invocation
     return (
         f"{invocation}\n\nAdditional task-specific instructions:\n\n"
@@ -339,58 +279,6 @@ def run_command(argv: list[str], *, log: Path | None = None,
                                   timeout=timeout)
     return subprocess.run(argv, cwd=REPO, capture_output=True, text=True,
                           timeout=timeout)
-
-
-def ensure_source(cfg: dict) -> Path:
-    official = cfg["official"]
-    cache = resolve(official["cache_dir"])
-    checkout = cache / f"blender_mcp-{official['source_ref'].replace('/', '_')}"
-    marker = checkout / "mcp" / "pyproject.toml"
-    cache.mkdir(parents=True, exist_ok=True)
-    with runtime_lock_path(SOURCE_LOCK_NAME).open("a+") as lock:
-        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-        if not marker.is_file():
-            partial = cache / f".{checkout.name}.partial-{os.getpid()}"
-            if partial.exists():
-                shutil.rmtree(partial)
-            completed = run_command([
-                "git", "clone", "--depth", "1", "--branch", official["source_ref"],
-                official["source_url"], str(partial),
-            ])
-            if completed.returncode:
-                raise RuntimeError(
-                    f"official source clone failed: {completed.stderr.strip()}")
-            partial.rename(checkout)
-        ensure_headless_screenshot_compat(checkout)
-        pin_compatible_mcp_sdk(checkout)
-    return checkout
-
-
-def pin_compatible_mcp_sdk(checkout: Path) -> None:
-    """Pin the SDK version verified with the official v1.0.0 server."""
-    target = checkout / "mcp" / "pyproject.toml"
-    text = target.read_text()
-    if MCP_DEPENDENCY_PINNED in text:
-        return
-    old = (MCP_DEPENDENCY_STOCK if MCP_DEPENDENCY_STOCK in text
-           else MCP_DEPENDENCY_COMPAT_MAJOR)
-    if old not in text:
-        raise RuntimeError("official MCP dependency declaration changed")
-    target.write_text(text.replace(old, MCP_DEPENDENCY_PINNED, 1))
-
-
-def ensure_headless_screenshot_compat(checkout: Path) -> None:
-    """Patch the pinned official VIEW_3D screenshot for Xvfb, idempotently."""
-    target = (checkout / "mcp" / "blmcp" / "tools" /
-              "get_screenshot_of_area_as_image_toolcode.py")
-    text = target.read_text()
-    if HEADLESS_SCREENSHOT_MARKER in text:
-        return
-    if HEADLESS_SCREENSHOT_STOCK not in text:
-        raise RuntimeError(
-            "official screenshot source no longer matches the pinned compatibility patch")
-    target.write_text(text.replace(
-        HEADLESS_SCREENSHOT_STOCK, HEADLESS_SCREENSHOT_REPLACEMENT, 1))
 
 
 def version_tuple(text: str) -> tuple[int, ...]:
@@ -597,14 +485,16 @@ class Stack:
             ready = self.runtime / "blender.ready.json"
             ready.unlink(missing_ok=True)
             # The .blend goes in as Blender's positional file argument so it is
-            # loaded before --python runs the bootstrap; --blend then tells the
+            # loaded before the bootstrap is imported; --blend then tells the
             # bootstrap to keep that scene instead of importing the reference.
             argv = [str(self.blender), "--factory-startup", "--online-mode",
                     "--python-use-system-env"]
             if self.restore is not None:
                 argv.append(str(self.restore))
             env = blender_environment(self.source / "addon", base_env=env)
-            argv += ["--python", str(HERE / "blender_bootstrap.py"), "--",
+            argv += ["--python-expr",
+                     "from tasks.full_3d_interaction.blender_bootstrap import main; main()",
+                     "--",
                      "--addon-root", str(self.source / "addon"),
                      "--glb", str(self.ref), "--port", str(self.port),
                      "--ready-file", str(ready),
@@ -714,12 +604,7 @@ def official_agent(cfg: dict, kind: str, timeout: int, source: Path, port: int):
     uv = shutil.which("uv") or "/usr/local/bin/uv"
 
     def servers(_self, _ports):
-        return {cfg["official"]["server_name"]: {
-            "command": uv,
-            "args": ["run", "--directory", str(source / "mcp"), "blender-mcp"],
-            "env": {"BLENDER_MCP_HOST": "127.0.0.1",
-                    "BLENDER_MCP_PORT": str(port)},
-        }}
+        return {cfg["official"]["server_name"]: server_spec(source, port, uv_bin=uv)}
 
     agent.servers = MethodType(servers, agent)
     return agent
@@ -834,7 +719,7 @@ def run_task(cfg: dict, task: str, kind: str, model: str | None,
     for directory in (logs, session):
         directory.mkdir(parents=True, exist_ok=True)
 
-    source = ensure_source(cfg)
+    source = ensure_source(REPO, cfg)
     blender = ensure_blender(cfg, no_download)
     stack = Stack(cfg, source, blender, ref, runtime, logs, xpra, restore=restore)
     record = {"task": task, "agent": kind, "ok": False,
@@ -1021,7 +906,7 @@ def run_task(cfg: dict, task: str, kind: str, model: str | None,
 
 def main(argv=None) -> int:
     args = parse_args(argv)
-    cfg = load_config(Path(args.config).resolve())
+    cfg = load_config(Path(args.config))
     selected = tasks(cfg, args.tasks)
     kind = args.agent or cfg["agent"]["kind"]
     timeout = args.timeout or int(cfg["run"]["timeout_sec"])

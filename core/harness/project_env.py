@@ -28,7 +28,7 @@ def default_blender() -> str:
         if path.is_absolute():
             return str(path)
         if len(path.parts) > 1:
-            return str((PROJECT_ROOT / path).resolve())
+            return str(path)
         return shutil.which(value) or value
     candidates = sorted((PROJECT_ROOT / "tools").glob("blender-*/blender"))
     if candidates:

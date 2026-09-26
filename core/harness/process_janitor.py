@@ -182,7 +182,7 @@ class RunJanitor:
         env = os.environ.copy()
         env.pop(ENV_KEY, None)  # the janitor must never reap itself
         command = [
-            sys.executable, str(Path(__file__).resolve()), "--watch",
+            sys.executable, "-m", "core.harness.process_janitor", "--watch",
             "--run-id", self.run_id,
             "--owner", str(owner),
             "--owner-started", owner_started or "",

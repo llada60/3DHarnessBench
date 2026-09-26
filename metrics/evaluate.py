@@ -30,7 +30,7 @@ from pathlib import Path
 
 
 from core.harness.project_env import default_blender, load_project_env
-from core.paths import BENCHMARK_ROOT, CORE_ROOT, PROJECT_ROOT
+from core.paths import BENCHMARK_ROOT, METRICS_ROOT, PROJECT_ROOT
 from core.harness.agent_registry import SETTING_CHOICES
 from core.harness.common_cli import (
     add_agent,
@@ -41,13 +41,12 @@ from core.harness.common_cli import (
     positive_int,
 )
 
-EVAL_ROOT = Path(__file__).resolve().parent
+EVAL_ROOT = METRICS_ROOT
 DEFAULT_GT_PATH = BENCHMARK_ROOT
 DEFAULT_OUTPUTS_ROOT = PROJECT_ROOT / "outputs"
 DEFAULT_GREY_SHADED_OUTPUTS_ROOT = (
     PROJECT_ROOT / "grey_shaded_outputs")
 DEFAULT_UNI3D_REPO = EVAL_ROOT / "external" / "Uni3D"
-PREPROCESSOR = CORE_ROOT / "export_glb.py"
 VIEWS = ("Image_005.png", "Image_015.png", "Image_025.png", "Image_035.png")
 ENCODERS = ("siglip2", "dinov2", "dinov3")
 SCENE_RIG_VERSION = "benchmark_extent_squared_v1"
@@ -75,12 +74,8 @@ API_TOKEN_PRICES = {
 
 
 def resolve_input_path(path: Path) -> Path:
-    if path.is_absolute():
-        return path.resolve()
-    from_cwd = (Path.cwd() / path).resolve()
-    if from_cwd.exists():
-        return from_cwd
-    return (PROJECT_ROOT / path).resolve()
+    """Use command-line paths relative to the repository working directory."""
+    return path.expanduser()
 
 
 def resolve_blender(path: Path) -> Path:
@@ -88,7 +83,7 @@ def resolve_blender(path: Path) -> Path:
     value = str(path)
     if os.sep not in value:
         found = shutil.which(value)
-        return Path(found).resolve() if found else Path(value)
+        return Path(found) if found else Path(value)
     return resolve_input_path(path)
 
 
@@ -232,9 +227,9 @@ def selected_instances(model_dir: Path, gt_root: Path,
 
 
 def replace_symlink(link: Path, target: Path, overwrite: bool = False) -> None:
-    """Create an absolute symlink while preserving unrelated real files."""
+    """Create a relative symlink while preserving unrelated real files."""
     if link.is_symlink():
-        if link.resolve(strict=False) == target.resolve():
+        if link.exists() and target.exists() and link.samefile(target):
             return
         link.unlink()
     elif link.exists():
@@ -244,7 +239,7 @@ def replace_symlink(link: Path, target: Path, overwrite: bool = False) -> None:
             raise RuntimeError(f"refusing to replace real directory: {link}")
         link.unlink()
     link.parent.mkdir(parents=True, exist_ok=True)
-    link.symlink_to(target.resolve(), target_is_directory=target.is_dir())
+    link.symlink_to(os.path.relpath(target, link.parent), target_is_directory=target.is_dir())
 
 
 def validate_gt_inputs(gt_root: Path, names: list[str], texture: bool,
@@ -769,11 +764,11 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"No such GT path: {gt_root}")
     if not model_dir.is_dir():
         raise SystemExit(f"No such evaluate_data_path: {model_dir}")
-    if not PREPROCESSOR.is_file():
-        raise SystemExit(f"Missing preprocessing script: {PREPROCESSOR}")
-    # Normalize the path inherited by shape_uni3d.py, including when a
-    # project-relative UNI3D_REPO was supplied from another working directory.
-    os.environ["UNI3D_REPO"] = str(validate_uni3d_repo())
+    # The metric subprocess imports Uni3D's standalone encoder normally.
+    uni3d_repo = validate_uni3d_repo()
+    os.environ["PYTHONPATH"] = os.pathsep.join(filter(None, (
+        str(uni3d_repo / "models"), os.environ.get("PYTHONPATH", ""),
+    )))
     args.blender = resolve_blender(args.blender)
     if not args.dry_run and not args.blender.is_file():
         raise SystemExit(f"Missing Blender binary: {args.blender}")

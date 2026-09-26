@@ -24,7 +24,7 @@
 
 set -Eeuo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="tasks/active_visual"
 # shellcheck source=lib-remote-blender.sh
 source "$SCRIPT_DIR/lib-remote-blender.sh"
 
@@ -179,8 +179,8 @@ cleanup_on_error() {
     for (( idx=${#STARTED[@]}-1 ; idx>=0 ; idx-- )); do
         item="${STARTED[idx]}"
         case "$item" in
-            blender_viewport) stop_pid_file "$PID_BLENDER_VIEWPORT" "viewport_only/addon.py" "Blender viewport_only" ;;
-            blender_full)     stop_pid_file "$PID_BLENDER_FULL" "official_blender_bootstrap.py" "Blender official workspace" ;;
+            blender_viewport) stop_pid_file "$PID_BLENDER_VIEWPORT" "--role viewport_only" "Blender viewport_only" ;;
+            blender_full)     stop_pid_file "$PID_BLENDER_FULL" "official_blender_bootstrap" "Blender official workspace" ;;
             xpra)             stop_pid_file "$PID_XPRA"     "xpra"    "Xpra" ;;
             openbox)          stop_pid_file "$PID_OPENBOX"  "openbox" "Openbox" ;;
             dbus)             stop_pid_file "$PID_DBUS"     "dbus-daemon" "D-Bus" ;;
@@ -309,8 +309,8 @@ start_xpra() {
 # The commands below launch the official workspace and restricted reference view.
 # Each Blender attaches to the display managed by this script:
 #
-#   BLENDER --factory-startup --python blender_mcp_bootstrap.py -- \
-#       --addon <addon> --role <role> --port <port>
+#   BLENDER --factory-startup --python-expr "from tasks... import main; main()" -- \
+#       --role <role> --port <port>
 #
 # Each instance gets its own BLENDER_USER_* dirs so the two never share config.
 _blender_user_env() {
@@ -328,7 +328,7 @@ _blender_user_env() {
 start_full_access_blender() {
     log "Starting official Blender MCP workspace (port ${FULL_ACCESS_PORT})"
     # A checkpoint .blend is Blender's positional file argument, so it is loaded
-    # before --python runs the bootstrap: the add-on then registers into the
+    # before the bootstrap module runs: the add-on then registers into the
     # restored scene exactly as it would into the factory one.
     local blend_args=()
     local resume_args=()
@@ -354,7 +354,7 @@ start_full_access_blender() {
             --python-use-system-env \
             --window-geometry "${window_geometry[@]}" \
             "${blend_args[@]}" \
-            --python "$OFFICIAL_BOOTSTRAP" \
+            --python-expr "from tasks.active_visual.official_blender_bootstrap import main; main()" \
             -- \
             --addon-root "$OFFICIAL_BLENDER_MCP_SOURCE/addon" \
             --port "$FULL_ACCESS_PORT" \
@@ -404,10 +404,9 @@ start_viewport_only_blender() {
             --python-use-system-env \
             --window-geometry "${window_geometry[@]}" \
             "${blend_args[@]}" \
-            --python "$BOOTSTRAP" \
+            --python-expr "from tasks.active_visual.blender_bootstrap import main; main()" \
             -- \
-            --upstream-bootstrap "$UPSTREAM_BOOTSTRAP" \
-            --addon "$VIEWPORT_ONLY_ADDON" \
+            --addon-module "$VIEWPORT_ONLY_ADDON_MODULE" \
             --role viewport_only \
             --port "$VIEWPORT_ONLY_PORT" \
             --light-power "$LIGHT_POWER" \

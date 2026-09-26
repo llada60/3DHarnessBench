@@ -99,7 +99,11 @@ For ActiveVisual/Full3DInteraction, prepare the local MCP service:
 pixi run uv sync --directory core/blender_mcp/viewport_only --locked
 ```
 
-The official Blender MCP source is downloaded automatically on first use.
+The official Blender MCP source is downloaded automatically on first use and
+verified against `[official].source_commit`. Its source files are not patched.
+The SDK requirement is maintained in `core/blender_mcp/requirements.txt`.
+To use a local MCP repository or a fork with compatibility fixes, see
+[MCP source configuration](core/blender_mcp/README.md).
 
 ## 4. Add data and evaluation assets
 
@@ -117,7 +121,10 @@ test -f "${UNI3D_REPO:-metrics/external/Uni3D}/models/point_encoder.py"
 
 `UNI3D_REPO` may point to another local checkout. Evaluation checks for the
 required `models/point_encoder.py` module and reports a direct setup error when
-it is absent. The harness does not enforce a Uni3D commit or tag.
+it is absent. The evaluator puts that checkout's `models` directory on the metric
+subprocess's `PYTHONPATH`, so its encoder is imported normally. When invoking
+`metrics.shape_uni3d` directly, supply the same `PYTHONPATH` yourself. The harness
+does not enforce a Uni3D commit or tag.
 
 Evaluation downloads **SigLIP2, DINOv2, DINOv3, Uni3D-Giant and EVA02/OpenCLIP**
 weights on first use. Allow roughly **20 GB** for weights in addition to the

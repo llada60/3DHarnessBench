@@ -22,7 +22,7 @@
 
 set -Eeuo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="tasks/active_visual"
 # shellcheck source=lib-remote-blender.sh
 source "$SCRIPT_DIR/lib-remote-blender.sh"
 
@@ -31,11 +31,11 @@ log "Stopping remote Blender MCP stack (reverse order)"
 # 1 & 3: viewport_only MCP is embedded in the viewport_only Blender, so
 #        stopping that Blender stops its MCP.
 log "viewport_only MCP is embedded in its Blender; stopping the Blender stops the MCP"
-stop_pid_file "$PID_BLENDER_VIEWPORT" "viewport_only/addon.py" "Blender viewport_only (+ MCP)"
+stop_pid_file "$PID_BLENDER_VIEWPORT" "--role viewport_only" "Blender viewport_only (+ MCP)"
 
 # 2 & 4: official bridge is embedded in the workspace Blender.
 log "official MCP bridge is embedded in its Blender; stopping Blender stops it"
-stop_pid_file "$PID_BLENDER_FULL" "official_blender_bootstrap.py" "Blender official workspace (+ MCP)"
+stop_pid_file "$PID_BLENDER_FULL" "official_blender_bootstrap" "Blender official workspace (+ MCP)"
 
 # 5: Xpra
 stop_pid_file "$PID_XPRA" "xpra" "Xpra"

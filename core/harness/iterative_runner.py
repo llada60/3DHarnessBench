@@ -14,7 +14,6 @@ import argparse
 import concurrent.futures
 import hashlib
 import importlib
-import importlib.util
 import json
 import os
 import shutil
@@ -31,7 +30,7 @@ from core.harness.project_env import default_blender
 from core.harness.run_config import atomic_write_json, thinking_depth as configured_thinking_depth
 from core.harness.usage_accounting import (runtime_latency_line, write_instance_usage,
                               write_runtime_latency_summary)
-from core.paths import BENCHMARK_ROOT, PROJECT_ROOT, PROMPTS_ROOT
+from core.paths import BENCHMARK_ROOT, PROJECT_ROOT
 from prompts.image_iterations import (
     editing_prompt, initial_prompt, parse_feedback, render_feedback,
 )
@@ -39,7 +38,7 @@ from prompts.image_iterations import (
 
 GRADED_EXP_DIR = PROJECT_ROOT
 DEFAULT_INPUT_PATH = BENCHMARK_ROOT
-DEFAULT_PROMPT_PATH = PROMPTS_ROOT / "image_only.py"
+DEFAULT_PROMPT_MODULE = "prompts.image_only"
 VIEW_NAMES = ("Image_005.png", "Image_015.png",
               "Image_025.png", "Image_035.png")
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp", ".bmp")
@@ -120,22 +119,15 @@ def output_run_root(output_dir: Path, view_mode: str,
     return output_dir / mode_dir / texture_dir / agent
 
 
-def load_prompt(prompt_path: Path, texture_renders: bool) -> str:
-    """Load ``build_prompt(bool)`` from the configured Python prompt module."""
-    module_spec = importlib.util.spec_from_file_location(
-        "graded_image_only_prompt", prompt_path)
-    if module_spec is None or module_spec.loader is None:
-        raise RuntimeError(f"Cannot load prompt module: {prompt_path}")
-    module = importlib.util.module_from_spec(module_spec)
-    module_spec.loader.exec_module(module)
-    builder = getattr(module, "build_prompt", None)
-    if not callable(builder):
-        raise RuntimeError(
-            f"Prompt module {prompt_path} must define build_prompt(texture_renders)")
-    prompt = builder(texture_renders)
+def load_prompt(module_name: str, texture_renders: bool) -> str:
+    """Load the built-in prompt or an importable custom prompt module."""
+    if module_name == DEFAULT_PROMPT_MODULE:
+        from prompts.image_only import build_prompt
+    else:
+        build_prompt = importlib.import_module(module_name).build_prompt
+    prompt = build_prompt(texture_renders)
     if not isinstance(prompt, str) or not prompt.strip():
-        raise RuntimeError(
-            f"Prompt module {prompt_path} returned an empty/non-string prompt")
+        raise ValueError(f"Prompt module {module_name} returned an empty/non-string prompt")
     return prompt
 
 
@@ -569,7 +561,7 @@ def build_parser(view_mode: str) -> argparse.ArgumentParser:
     add_texture_renders(parser)
     parser.add_argument("--single-view", default=VIEW_NAMES[0],
                         help="Filename used by the single-image runner")
-    parser.add_argument("--prompt-path", type=Path, default=DEFAULT_PROMPT_PATH,
+    parser.add_argument("--prompt-module", default=DEFAULT_PROMPT_MODULE,
                         help="Python module defining build_prompt(texture_renders) "
                              "(default: %(default)s)")
     add_tasks(parser, dest="instances")
@@ -629,9 +621,7 @@ def validate_runtime(args, parser: argparse.ArgumentParser) -> None:
                    if os.sep not in args.blender else args.blender)
         if not blender or not Path(blender).is_file():
             parser.error(f"Blender executable not found: {args.blender!r}")
-        args.blender = str(Path(blender).resolve())
-    if not args.prompt_path.is_file():
-        parser.error(f"Prompt file not found: {args.prompt_path}")
+        args.blender = str(blender)
 
 
 def main(view_mode: str, argv=None) -> int:
@@ -642,7 +632,7 @@ def main(view_mode: str, argv=None) -> int:
     args.image_dir = ("color_renders" if args.texture_renders
                       else "grey_renders")
     validate_runtime(args, parser)
-    prompt_text = load_prompt(args.prompt_path, args.texture_renders)
+    prompt_text = load_prompt(args.prompt_module, args.texture_renders)
     tasks = discover_tasks(args.input_path, args.image_dir, view_mode,
                            args.single_view, args.instances, args.limit)
 

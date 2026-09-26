@@ -22,8 +22,7 @@ from pathlib import Path
 
 from core.blender_runtime import blender_environment
 
-EVAL_ROOT = Path(os.environ.get("EVAL_ROOT")
-                 or Path(__file__).resolve().parents[1] / "metrics")
+EVAL_ROOT = Path(os.environ.get("EVAL_ROOT", "metrics"))
 DEFAULT_RESULTS_ROOT = EVAL_ROOT / "results"
 
 
@@ -73,7 +72,7 @@ def parse_cli(argv=None):
     return p.parse_args(argv)
 
 
-def render_one(args, this_script: Path, instance_dir: Path):
+def render_one(args, instance_dir: Path):
     name = instance_dir.name
     gen_script = instance_dir / f"{name}.py"
     output_instance_dir = instance_dir
@@ -100,7 +99,7 @@ def render_one(args, this_script: Path, instance_dir: Path):
     renders_dir.mkdir(parents=True, exist_ok=True)
     log_path.unlink(missing_ok=True)
     cmd = [args.blender, "--background", "--python-use-system-env",
-           "--python", str(this_script), "--",
+           "--python-expr", "from core.render import main; main()", "--",
            "--blender-render",
            "--script",     str(gen_script),
            "--output-dir", str(renders_dir),
@@ -188,8 +187,6 @@ def main(argv: list[str] | None = None) -> int:
         gen_script = d / f"{d.name}.py"
         sanitize_script(gen_script)
 
-    this_script = Path(__file__).resolve()
-
     print(f"Model:       {args.model}")
     print(f"Instances:   {len(instance_dirs)}")
     print(f"Engine:      {args.engine}, samples={args.samples}, res={args.resolution}")
@@ -206,13 +203,13 @@ def main(argv: list[str] | None = None) -> int:
     t_run = time.time()
     if args.workers <= 1:
         for d in instance_dirs:
-            name, status, err, dt = render_one(args, this_script, d)
+            name, status, err, dt = render_one(args, d)
             counts[status] = counts.get(status, 0) + 1
             tail = f" -- {err.splitlines()[0]}" if err else ""
             print(f"  [{status:<13}] {name}  ({dt:.1f}s){tail}")
     else:
         with ThreadPoolExecutor(max_workers=args.workers) as ex:
-            futs = {ex.submit(render_one, args, this_script, d): d
+            futs = {ex.submit(render_one, args, d): d
                     for d in instance_dirs}
             for fut in as_completed(futs):
                 name, status, err, dt = fut.result()

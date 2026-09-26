@@ -12,13 +12,12 @@ from pathlib import Path
 from .project_env import default_blender
 from .agent_registry import AGENT_CHOICES
 from .common_cli import boolean_value, positive_int
-from core.paths import BENCHMARK_ROOT, CORE_ROOT, PROJECT_ROOT
+from core.paths import BENCHMARK_ROOT, PROJECT_ROOT
 from core.blender_runtime import blender_environment
 
 GRADED_EXP_DIR = PROJECT_ROOT
 DEFAULT_INPUT_PATH = BENCHMARK_ROOT
 DEFAULT_OUTPUT_PATH = GRADED_EXP_DIR / "outputs"
-RENDER_DRIVER = CORE_ROOT / "render.py"
 
 @dataclass(frozen=True)
 class MCPAgentSpec:
@@ -114,7 +113,7 @@ def render_script(script: Path, renders: Path, *, blender: str,
     log = renders / "render_log.json"
     command = [
         blender, "--background", "--python-use-system-env",
-        "--python", str(RENDER_DRIVER), "--",
+        "--python-expr", "from core.render import main; main()", "--",
         "--blender-render", "--script", str(script),
         "--output-dir", str(renders), "--samples", str(samples),
         "--resolution", str(resolution), "--engine", engine,

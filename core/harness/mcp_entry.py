@@ -87,10 +87,10 @@ def _resolve_blender(value: str, parser: argparse.ArgumentParser) -> str:
     found = shutil.which(value) if "/" not in value else value
     if not found or not Path(found).is_file():
         parser.error(f"Blender executable not found: {value!r}")
-    return str(Path(found).resolve())
+    return str(found)
 
 
-def configure(mode: str, runner, script_dir: Path, args) -> tuple[dict, list[str]]:
+def configure(mode: str, runner, args) -> tuple[dict, list[str]]:
     cfg = runner.load_config(runner.CONFIG_PATH)
     spec = agent_spec(args.agent)
     # Both MCP modes share one task skill.  The runner stages the complete
@@ -101,15 +101,15 @@ def configure(mode: str, runner, script_dir: Path, args) -> tuple[dict, list[str
     run_root = output_root(args.output_dir, mode, args.texture_renders, args.agent)
     output_agent = run_root.name
     cfg["_graded"] = {
-        "input_path": str(args.input_path.resolve()),
-        "prompt_path": str(prompt.resolve()),
+        "input_path": str(args.input_path),
+        "prompt_path": str(prompt),
         "texture_renders": args.texture_renders,
         "agent_alias": args.agent,
         "output_agent": output_agent,
         "resume_kind": spec.cli_kind,
         "resume_across_prompt_changes": False,
     }
-    cfg["run"]["input_root"] = str(args.input_path.resolve())
+    cfg["run"]["input_root"] = str(args.input_path)
     output_key = "tasks_root" if mode == "ActiveVisual" else "output_root"
     # The harness appends output_agent/task; output_agent is the public alias.
     cfg["run"][output_key] = str(run_root.parent)
@@ -148,8 +148,6 @@ def configure(mode: str, runner, script_dir: Path, args) -> tuple[dict, list[str
     })
     cfg["blender"]["binary"] = args.blender
     cfg["blender"]["xpra"] = args.xpra
-    if "official" in cfg:
-        cfg["official"]["cache_dir"] = str(script_dir / ".cache")
     instances = discover_instances(args.input_path, args.tasks, args.limit)
     return cfg, instances
 
@@ -255,7 +253,7 @@ def _run_instance(mode: str, runner, cfg: dict, instance: str, args, spec,
     return instance, ok
 
 
-def main(mode: str, runner, script_dir: Path, argv=None) -> int:
+def main(mode: str, runner, argv=None) -> int:
     if mode not in ("ActiveVisual", "Full3DInteraction"):
         raise ValueError(mode)
     parser = build_parser(mode)
@@ -264,13 +262,13 @@ def main(mode: str, runner, script_dir: Path, argv=None) -> int:
         parser.error("--retry-delay must be non-negative")
     if not args.dry_run:
         args.blender = _resolve_blender(args.blender, parser)
-    cfg, instances = configure(mode, runner, script_dir, args)
+    cfg, instances = configure(mode, runner, args)
     spec = agent_spec(args.agent)
     run_root = output_root(args.output_dir, mode, args.texture_renders,
                            args.agent)
     print(f"Mode:       {mode}")
     print(f"Agent:      {args.agent} -> {spec.cli_kind} ({spec.model})")
-    print(f"Input:      {args.input_path.resolve()}")
+    print(f"Input:      {args.input_path}")
     print(f"Output:     {run_root}")
     print(f"Reference:  {'<instance>.glb' if args.texture_renders else '<instance>_grey.glb'}")
     print("Retries:    disabled; every attempt stops and checkpoints once")
