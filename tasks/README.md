@@ -7,19 +7,19 @@ All four runners automatically load the root `.env`; their child processes
 inherit its variables. ActiveVisual and Full3DInteraction require Linux/Xvfb.
 
 ```bash
-pixi run single-view --agent gpt-5-6-sol
-pixi run multi-view --agent gemini3-1-pro
-pixi run active-visual --agent opus-5
-pixi run full-3d-interaction --agent minimax-m3
+pixi run single-view --data-path data/benchmark --agent gpt-5-6-sol
+pixi run multi-view --data-path data/benchmark --agent gemini3-1-pro
+pixi run active-visual --data-path data/benchmark --agent opus-5
+pixi run full-3d-interaction --data-path data/benchmark --agent minimax-m3
 ```
 
 ## Common options
 
 | Option | Meaning |
 | --- | --- |
-| `--data-path PATH` | benchmark root or one instance directory |
+| `--data-path PATH` | required, e.g. `data/benchmark` or `/datasets/benchmark` |
 | `--output-dir PATH` | output base; setting/texture/agent are appended |
-| `--agent NAME` | one of the eight names listed in the root README |
+| `--agent NAME` | required, e.g. `gpt-5-6-sol`; supported names in the root README |
 | `--texture-renders [BOOL]` | use color renders/textured GLBs |
 | `--no-texture-renders` | use grey renders/geometry-only GLBs |
 | `--tasks NAME ...` | select benchmark instances |
@@ -46,7 +46,7 @@ script using reference and generated images. The default reference is
 is returned to the agent as feedback.
 
 ```bash
-pixi run single-view --agent gpt-5-6-sol --tasks VaseFactory --iterations 0
+pixi run single-view --data-path data/benchmark --agent gpt-5-6-sol --tasks VaseFactory --iterations 0
 ```
 
 Start reading at [single_view/run.py](single_view/run.py), then follow the
@@ -59,7 +59,7 @@ the selected render directory (four views in the released benchmark).
 All generated views are returned as feedback for subsequent edits.
 
 ```bash
-pixi run multi-view --agent gpt-5-6-sol --tasks VaseFactory --iterations 0
+pixi run multi-view --data-path data/benchmark --agent gpt-5-6-sol --tasks VaseFactory --iterations 0
 ```
 
 [multi_view/run.py](multi_view/run.py) uses the same iterative runtime as
@@ -73,7 +73,7 @@ through its own MCP server. The shell launchers in
 [active_visual/](active_visual/) manage this two-instance setup.
 
 ```bash
-pixi run active-visual --agent kimi-k3 --texture-renders True
+pixi run active-visual --data-path data/benchmark --agent kimi-k3 --texture-renders True
 ```
 
 The reference lighting rig is installed after GLB import; the initially empty
@@ -90,7 +90,7 @@ wraps the pinned official add-on startup. The lighting rig uses the imported
 geometry's extent.
 
 ```bash
-pixi run full-3d-interaction --agent gpt-5-6-sol --texture-renders True
+pixi run full-3d-interaction --data-path data/benchmark --agent gpt-5-6-sol --texture-renders True
 ```
 
 The reconstruction skill uses its same-scene access rules. Connection and
@@ -141,8 +141,11 @@ Both settings persist task-local CLI sessions and Blender checkpoints:
   ID are saved under `checkpoint/` for resumption.
 - Repeating the same command resumes compatible checkpoints and skips
   completed instances. The public runners impose no cross-invocation attempt
-  limit (`max_attempts = 0`). `--fresh` archives the previous attempt and starts
-  over; use `--fresh --rerun` to restart completed work too.
+  limit (`max_attempts = 0`).
+- `--rerun` starts selected instances over, including completed work, and
+  archives any resumable checkpoint. Restart applies
+  only to the first attempt: automatic continuations resume the checkpoint
+  written by that attempt. To resume on a later invocation, omit `--rerun`.
 - For unfinished work, changing the GLB or another compatibility input archives
   the incompatible checkpoint before restarting. `--block-incompatible` instead
   preserves it and reports `BLOCKED`. Completed instances are skipped before

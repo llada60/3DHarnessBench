@@ -9,13 +9,16 @@ first. This entry point automatically loads the checkout root `.env`, including
 
 ```bash
 pixi run python -m metrics.evaluate \
-  --data-path benchmark \
+  --data-path data/benchmark \
   --output-dir outputs \
   --setting Full3DInteraction \
   --agent gpt-5-6-sol \
   --tasks VaseFactory \
   --num-parallel 2
 ```
+
+`--data-path`: **required**, e.g. `data/benchmark` or `/datasets/benchmark`.
+`--agent`: **required**, e.g. `gpt-5-6-sol`.
 
 Use `--dry-run` to inspect commands without running Blender or metric models.
 A dry-run still requires the selected generated scripts and reference assets.
@@ -79,10 +82,16 @@ weights are loaded by `metrics/shape_uni3d.py`.
 
 ## Re-running evaluation
 
-Use `--skip-prepare` when render/GLB artifacts are already available.
-`--overwrite-artifacts --overwrite-metrics` rebuilds stale results after the
-generated scripts or selected instances change. Existing metric files may
-cover a different selection, so inspect their instance counts before reporting.
+Every run recomputes and overwrites metrics for the selected instances and
+parameters. Preparation compares each generated script’s SHA-256 fingerprint
+with the fingerprint recorded after successful rendering or GLB export. Changed
+scripts automatically rebuild the affected regular renders, grey-shaded renders
+(when requested), and GLBs. Missing fingerprints trigger a rebuild, including
+the first evaluation of older artifacts. Failed preparation and dry-runs do not
+update fingerprints.
+
+Use `--skip-prepare` to explicitly bypass rendering, GLB export, and artifact
+freshness checks and score the existing artifacts.
 
 Outside dry-run, preparation can sanitize generated scripts in place and
 replace metric-input links. Evaluate a copy if original outputs must be kept

@@ -29,7 +29,7 @@ both Blenders are saved to <task>/checkpoint/ and the CLI's session id is
 recorded. A usage limit always ends the current invocation; re-running the same
 command later resumes the saved conversation and scenes. Qwen may automatically
 start another attempt for other resumable failures.
-See checkpoint.py, and `--fresh` / `--no-resume` to opt out.
+See checkpoint.py, and `--rerun` / `--no-resume` to opt out.
 
 SKIP: a task that already has a complete output -- its ActiveVisual.run.json
 says ok, its final.blend is there, and no checkpoint is waiting -- is left
@@ -103,6 +103,7 @@ def file_content_digest(path: Path) -> str:
 
 def parse_args(argv=None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
+        allow_abbrev=False,
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", default=str(CONFIG_PATH),
                         help="TOML config (default: %(default)s)")
@@ -129,10 +130,6 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--resume", dest="resume", action="store_true",
                         help="continue an interrupted task from its checkpoint "
                              "(the default)")
-    parser.add_argument("--fresh", action="store_true",
-                        help="discard an existing checkpoint and run the task "
-                             "from the start (previous attempts are archived "
-                             "under <task>/attempts/)")
     parser.add_argument(
         "--fresh-incompatible",
         action="store_true",
@@ -142,12 +139,14 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--max-attempts", type=int,
                         help="override [resume].max_attempts")
     parser.add_argument("--rerun", action="store_true",
-                        help="run tasks that already have a complete output "
-                             "instead of skipping them (see "
-                             "[run].skip_completed)")
+                        help="start tasks over, including completed tasks "
+                             "(previous attempts are archived)")
     parser.add_argument("--dry-run", action="store_true",
                         help="resolve tasks/inputs and exit without launching")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    # Restart only the first attempt; later automatic attempts must resume.
+    args.fresh = args.rerun
+    return args
 
 
 # --------------------------------------------------------------------------
@@ -291,7 +290,7 @@ def skip_reason(task: str, task_dir: Path, cfg: dict,
                 completed_reference_matches: bool = False) -> str:
     """Why this task is left alone, or "" when it is to be run.
 
-    `--rerun` and `--fresh` both say "do this task again", and a utility task
+    `--rerun` says "do this task again", and a utility task
     (`_mcpcheck`, the wiring probe) is never skipped: it is asked for by name to
     find out whether the wiring works *now*, so a PASS from last week is not an
     answer to that.
@@ -768,7 +767,7 @@ def run_task(task: str, cfg: dict, args: argparse.Namespace) -> dict:
     if decision["mode"] == "blocked":
         print("    BLOCKED: a checkpoint for this task is waiting but cannot be "
               "used by this invocation.")
-        print("    Pass --fresh to start the task over (previous attempts are "
+        print("    Pass --rerun to start the task over (previous attempts are "
               "archived, not deleted), or match the checkpoint above.")
         return {"task": task, "ok": False, "output_dir": str(task_dir),
                 "error": f"checkpoint unusable: {decision['note']}",
@@ -1087,7 +1086,7 @@ def main(argv=None) -> int:
                 break
             print(f"[{task}] checkpoint saved; automatically starting attempt "
                   f"{attempt + 1} in the same Qwen session")
-            # --fresh applies to the user-requested first attempt only. The
+            # --rerun applies to the user-requested first attempt only. The
             # checkpoint just written by that attempt must now be resumed.
             task_args.fresh = False
         records.append(record)

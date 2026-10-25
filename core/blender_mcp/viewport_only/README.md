@@ -21,7 +21,7 @@ From the repository root, after following [INSTALL.md](../../../INSTALL.md):
 
 ```bash
 pixi run uv sync --directory core/blender_mcp/viewport_only --locked
-pixi run active-visual --agent gpt-5-6-sol
+pixi run active-visual --data-path data/benchmark --agent gpt-5-6-sol
 ```
 
 The experiment runner starts the add-on, assigns its port and configures the

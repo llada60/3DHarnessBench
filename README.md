@@ -113,7 +113,8 @@ Run commands from the repository root (`3DHarnessBench/`). All entry points load
 ## Download the Benchmark
 
 Download [3DHarnessBench from Hugging Face](https://huggingface.co/datasets/lingada/3DHarnessBench)
-and place the instance directories under `benchmark/`, following the
+and place the instance directories under `data/benchmark/` (or another dataset
+root supplied through `--data-path`), following the
 [data layout](benchmark/README.md). The complete benchmark contains
 **100 instances** with textured/grey GLBs and reference renders.
 
@@ -128,7 +129,7 @@ and then edit it for the specified number of rounds.
 ```bash
 pixi run single-view \
   --agent gpt-5-6-sol \
-  --data-path benchmark \
+  --data-path data/benchmark \
   --output-dir outputs \
   --texture-renders True \
   --iterations 3 \
@@ -137,10 +138,10 @@ pixi run single-view \
 
 For **Multi-view**, replace `single-view` with `multi-view`.
 
-- `--agent`: agent to run. Supported names:
+- `--agent`: **required**, e.g. `gpt-5-6-sol`. Supported names:
   `gpt-6-astra`, `gpt-5-6-sol`, `kimi-k3`, `opus-5`, `fable-5`,
   `qwen3-8-max-preview`, `gemini3-1-pro`, `minimax-m3`.
-- `--data-path`: benchmark directory; default **`benchmark`**.
+- `--data-path`: **required**, e.g. `data/benchmark`.
 - `--output-dir`: output base directory; default **`outputs`**.
 - `--texture-renders`: use color references (`True`, default) or grey references
   (`False`).
@@ -164,7 +165,7 @@ Blender containing the reference.
 ```bash
 pixi run active-visual \
   --agent gpt-5-6-sol \
-  --data-path benchmark \
+  --data-path data/benchmark \
   --output-dir outputs \
   --texture-renders True \
   --num-parallel 4 \
@@ -174,18 +175,22 @@ pixi run active-visual \
 
 For **Full3DInteraction**, replace `active-visual` with `full-3d-interaction`.
 
-- `--agent`, `--data-path`, `--output-dir`: same meanings and defaults as above.
+- `--agent`: **required**, e.g. `gpt-5-6-sol`.
+- `--data-path`: **required**, e.g. `data/benchmark`.
+- `--output-dir`: same default as above.
 - `--texture-renders`: load the textured reference GLB (`True`, default) or its
   grey version (`False`).
 - `--num-parallel`: concurrent instances; default **4**.
 - `--timeout`: seconds per CLI attempt; default **9600**, not a total run limit.
 - `--max-retries`: same-session reconnections after timeout; default **5**.
   Qwen/MiniMax also use this budget for session continuations.
+- `--rerun`: restart selected instances from the beginning, including completed
+  instances, and archive any resumable checkpoint.
 
 These modes are interactive and have no `--iterations` parameter. `--tasks`,
 `--limit` and `--dry-run` work as above. Repeating a command resumes compatible
-checkpoints and skips completed instances. To restart including completed work,
-add `--fresh --rerun`.
+checkpoints and skips completed instances. Add `--rerun` only when you want to
+start over; omit it on a later invocation to resume the new run's checkpoint.
 
 ## Evaluation
 
@@ -195,7 +200,7 @@ Use the same setting, agent, output directory and texture choice as generation:
 pixi run python -m metrics.evaluate \
   --setting Single-view \
   --agent gpt-5-6-sol \
-  --data-path benchmark \
+  --data-path data/benchmark \
   --output-dir outputs \
   --texture-renders True \
   --device cuda \
@@ -205,8 +210,9 @@ pixi run python -m metrics.evaluate \
 
 - `--setting`: **required**; `Single-view`, `Multi-view`, `ActiveVisual` or
   `Full3DInteraction`.
-- `--agent`: **required**; the agent whose results you want to evaluate.
-- `--data-path`, `--output-dir`, `--texture-renders`: same defaults as generation.
+- `--agent`: **required**, e.g. `gpt-5-6-sol`.
+- `--data-path`: **required**, e.g. `data/benchmark` or `/datasets/benchmark`.
+- `--output-dir`, `--texture-renders`: same defaults as generation.
 - `--device`: model inference device; default **`cuda`** (NVIDIA GPU).
 - `--batch-size`: image-encoder batch size; default **16**.
 - `--num-parallel`: concurrent Blender preparation jobs, not metric-model
@@ -216,9 +222,10 @@ pixi run python -m metrics.evaluate \
 Evaluation prepares missing renders/GLBs and computes usage, Chamfer, Betti, image
 similarity (**SigLIP2, DINOv2, DINOv3**) and **Uni3D** metrics.
 
-Add `--tasks VaseFactory` to evaluate a subset. Existing metric files are reused;
-add `--overwrite-metrics` after changing the evaluated selection or parameters.
-After changing generated scripts, add `--overwrite-artifacts --overwrite-metrics`.
+Add `--tasks VaseFactory` to evaluate a subset. Every evaluation recomputes and
+overwrites metrics for the current selection and parameters. Script content
+changes automatically rebuild the affected renders and GLBs before scoring.
+Artifacts without a recorded script fingerprint are rebuilt on the first run.
 Without DINOv3 access, `--image-encoders siglip2 dinov2` runs a partial encoder
 evaluation; Uni3D still runs.
 

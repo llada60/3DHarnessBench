@@ -104,7 +104,8 @@ The official Blender MCP source is downloaded automatically on first use.
 ## 4. Add data and evaluation assets
 
 Download the [benchmark](https://huggingface.co/datasets/lingada/3DHarnessBench)
-and place the instance directories under `benchmark/`, following the
+and place the instance directories under `data/benchmark/` (or another dataset
+root supplied through `--data-path`), following the
 [data layout](benchmark/README.md).
 
 Clone the Uni3D source (skip if already present):
@@ -141,11 +142,11 @@ After setup, generate one instance and evaluate it:
 ```bash
 pixi run codex login status
 
-pixi run single-view --agent gpt-5-6-sol \
+pixi run single-view --data-path data/benchmark --agent gpt-5-6-sol \
   --tasks VaseFactory --iterations 0 --num-parallel 1 \
   --output-dir outputs/install-check
 
-pixi run python -m metrics.evaluate --setting Single-view --agent gpt-5-6-sol \
+pixi run python -m metrics.evaluate --data-path data/benchmark --setting Single-view --agent gpt-5-6-sol \
   --tasks VaseFactory --output-dir outputs/install-check \
   --num-parallel 1 --device cuda --batch-size 1
 ```

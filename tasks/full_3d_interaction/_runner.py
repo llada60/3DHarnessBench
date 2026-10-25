@@ -114,7 +114,7 @@ def load_config(path: Path) -> dict:
 
 
 def parse_args(argv=None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(allow_abbrev=False, description=__doc__)
     parser.add_argument("--config", default=str(CONFIG_PATH))
     parser.add_argument("--task", action="append", dest="tasks")
     parser.add_argument("--agent", choices=sorted(AGENTS.AGENTS))
@@ -136,10 +136,6 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--resume", dest="resume", action="store_true",
                         help="continue an interrupted task from its checkpoint "
                              "(the default)")
-    parser.add_argument("--fresh", action="store_true",
-                        help="discard an existing checkpoint and run the task "
-                             "from the start (previous attempts are archived "
-                             "under <output>/attempts/)")
     parser.add_argument(
         "--fresh-incompatible",
         action="store_true",
@@ -149,10 +145,13 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--max-attempts", type=int,
                         help="override [resume].max_attempts")
     parser.add_argument("--rerun", action="store_true",
-                        help="run tasks that already have a complete output "
-                             "instead of skipping them (see [run].skip_completed)")
+                        help="start tasks over, including completed tasks "
+                             "(previous attempts are archived)")
     parser.add_argument("--dry-run", action="store_true")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    # Restart only the first attempt; later automatic attempts must resume.
+    args.fresh = args.rerun
+    return args
 
 
 RUN_RECORD = "Full3DInteraction.run.json"
@@ -275,7 +274,7 @@ def skip_reason(task: str, output: Path, cfg: dict, *, rerun: bool, fresh: bool,
                 completed_reference_matches: bool = False) -> str:
     """Why this task is left alone, or "" when it is to be run.
 
-    `--rerun` and `--fresh` both say "do this task again", and a utility task
+    `--rerun` says "do this task again", and a utility task
     (`_mcpcheck`) is never skipped: it is run by name to find out whether the
     wiring works *now*.
     """
@@ -803,7 +802,7 @@ def run_task(cfg: dict, task: str, kind: str, model: str | None,
         print(f"    resume: {decision['note']}")
     if decision["mode"] == "blocked":
         print("    BLOCKED: a checkpoint for this task is waiting but cannot be "
-              "used by this invocation. Pass --fresh to start over.")
+              "used by this invocation. Pass --rerun to start over.")
         return {"task": task, "agent": kind, "ok": False, "output": str(output),
                 "error": f"checkpoint unusable: {decision['note']}",
                 "resume": {"mode": "blocked", "note": decision["note"]}}

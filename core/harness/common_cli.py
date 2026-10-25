@@ -32,13 +32,13 @@ def positive_int(value: str) -> int:
     return number
 
 
-def add_data_path(parser: argparse.ArgumentParser, default: Path, *,
+def add_data_path(parser: argparse.ArgumentParser, *,
                   dest: str = "data_path", help_text: str | None = None) -> None:
     parser.add_argument(
         "--data-path",
-        dest=dest, type=Path, default=default,
-        help=help_text or "benchmark root or one instance directory "
-        "(default: %(default)s)",
+        dest=dest, type=Path, required=True,
+        help=help_text or "required benchmark root or one instance directory; "
+        "use a path relative to the current working directory or an absolute path",
     )
 
 
@@ -50,12 +50,10 @@ def add_output_dir(parser: argparse.ArgumentParser, default: Path, *,
     )
 
 
-def add_agent(parser: argparse.ArgumentParser, *, required: bool = False,
-              default: str = "kimi-k3") -> None:
+def add_agent(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "--agent", choices=AGENT_CHOICES, required=required,
-        default=None if required else default,
-        help="public agent name" + ("" if required else " (default: %(default)s)"),
+        "--agent", choices=AGENT_CHOICES, required=True,
+        help="required public agent name",
     )
 
 

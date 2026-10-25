@@ -1,10 +1,11 @@
 # Benchmark data
 
 Download [3DHarnessBench from Hugging Face](https://huggingface.co/datasets/lingada/3DHarnessBench)
-and place each instance in its own directory under `benchmark/`:
+and place each instance in its own directory under your chosen dataset root,
+for example `data/benchmark/`:
 
 ```text
-benchmark/<instance>/
+data/benchmark/<instance>/
 ├── <instance>.glb
 ├── <instance>_grey.glb
 ├── prompt.txt

@@ -159,8 +159,7 @@ def mark_out_of_limit(task_dir: Path, *, reason: str, evidence: str) -> Path:
 
     Unlike ``mark()``, this also records a first-attempt task that never had a
     checkpoint.  It is intentionally non-resumable: the next sweep skips the
-    matching run record unless the caller explicitly passes ``--rerun`` or
-    ``--fresh``.
+    matching run record unless the caller explicitly passes ``--rerun``.
     """
     state = load(task_dir) or {}
     state.update({"state": OUT_OF_LIMIT, "reason": reason,
@@ -307,7 +306,7 @@ def decide(task_dir: Path, *, kind: str, model: str, digest: str,
     waiting, and something about this invocation does not match it (different
     model, edited prompt, attempts used up). Starting the task over instead
     would quietly discard the work the checkpoint holds, so the driver reports
-    what is wrong and leaves the decision to the caller (`--fresh`).
+    what is wrong and leaves the decision to the caller (`--rerun`).
 
     `archive` is the attempt whose artifacts are still lying in the task dir and
     have to be moved aside before this run overwrites them.
@@ -320,9 +319,9 @@ def decide(task_dir: Path, *, kind: str, model: str, digest: str,
                 "note": f"previous checkpoint is {state.get('state')!r}"}
     archive = int(state.get("attempts", 1))
     if fresh:
-        mark(task_dir, EXHAUSTED, closed_reason="discarded by --fresh")
+        mark(task_dir, EXHAUSTED, closed_reason="discarded by restart request")
         return {"mode": "fresh", "state": state, "attempt": 1, "archive": archive,
-                "note": "--fresh: the resumable checkpoint was discarded"}
+                "note": "restart requested: the resumable checkpoint was discarded"}
     if not settings["enabled"]:
         # Archive anyway: this run overwrites the same file names, and the
         # attempt that produced the checkpoint should stay inspectable.

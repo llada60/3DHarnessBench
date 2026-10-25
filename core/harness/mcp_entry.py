@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 from .mcp_runner import (
-    DEFAULT_INPUT_PATH, DEFAULT_OUTPUT_PATH,
+    DEFAULT_OUTPUT_PATH,
     agent_spec, benchmark_instance,
     default_blender, discover_instances, nonnegative_int, output_root,
     positive_int, render_script,
@@ -26,7 +26,7 @@ def build_parser(mode: str) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         allow_abbrev=False,
         description=f"Run the graded {mode} Blender MCP experiment")
-    add_data_path(parser, DEFAULT_INPUT_PATH, dest="input_path")
+    add_data_path(parser, dest="input_path")
     add_output_dir(parser, DEFAULT_OUTPUT_PATH)
     add_agent(parser)
     add_texture_renders(parser)
@@ -45,8 +45,6 @@ def build_parser(mode: str) -> argparse.ArgumentParser:
     parser.add_argument("--retry-delay", type=float, default=5.0,
                         help="initial seconds to wait before a provider session "
                              "reconnection (default: %(default)s)")
-    parser.add_argument("--fresh", action="store_true",
-                        help="start over and archive any compatible checkpoint")
     checkpoint_conflicts = parser.add_mutually_exclusive_group()
     checkpoint_conflicts.add_argument(
         "--fresh-incompatible",
@@ -63,7 +61,8 @@ def build_parser(mode: str) -> argparse.ArgumentParser:
         help="leave incompatible checkpoints untouched and report BLOCKED",
     )
     parser.add_argument("--rerun", action="store_true",
-                        help="run even if this configuration already completed")
+                        help="start over, including completed instances, and archive "
+                             "any resumable checkpoint")
     parser.add_argument("--resume", dest="resume", action="store_true",
                         default=True)
     parser.add_argument("--no-resume", dest="resume", action="store_false")
@@ -260,6 +259,8 @@ def main(mode: str, runner, script_dir: Path, argv=None) -> int:
         raise ValueError(mode)
     parser = build_parser(mode)
     args = parser.parse_args(argv)
+    # Restart only the first attempt; later automatic attempts must resume.
+    args.fresh = args.rerun
     if args.retry_delay < 0:
         parser.error("--retry-delay must be non-negative")
     if not args.dry_run:

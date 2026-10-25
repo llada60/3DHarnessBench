@@ -11,13 +11,14 @@ Chamfer, Betti normalized L1, image similarity, and Uni3D.
 
 Run from this project root, for example::
 
-    pixi run python -m metrics.evaluate --data-path benchmark \
+    pixi run python -m metrics.evaluate --data-path data/benchmark \
         --agent gpt-5-6-sol --setting Multi-view
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 import json
 import os
@@ -30,7 +31,7 @@ from pathlib import Path
 
 
 from core.harness.project_env import default_blender, load_project_env
-from core.paths import BENCHMARK_ROOT, CORE_ROOT, PROJECT_ROOT
+from core.paths import CORE_ROOT, PROJECT_ROOT
 from core.harness.agent_registry import SETTING_CHOICES
 from core.harness.common_cli import (
     add_agent,
@@ -42,7 +43,6 @@ from core.harness.common_cli import (
 )
 
 EVAL_ROOT = Path(__file__).resolve().parent
-DEFAULT_GT_PATH = BENCHMARK_ROOT
 DEFAULT_OUTPUTS_ROOT = PROJECT_ROOT / "outputs"
 DEFAULT_GREY_SHADED_OUTPUTS_ROOT = (
     PROJECT_ROOT / "grey_shaded_outputs")
@@ -113,19 +113,19 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         allow_abbrev=False,
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="All relative paths are resolved from this project root.",
+        epilog="Relative --data-path values are resolved from the current working directory.",
     )
     add_data_path(
-        parser, DEFAULT_GT_PATH, dest="data_path",
-        help_text="GT root containing per-instance renders and GLBs "
-        "(default: %(default)s)",
+        parser, dest="data_path",
+        help_text="required GT root containing per-instance renders and GLBs; "
+        "use a path relative to the current working directory or an absolute path",
     )
     add_texture_renders(parser)
     parser.add_argument("--grey-shaded", action="store_true",
                         help="Additionally render generated objects with the "
                              "benchmark grey material and compare those views "
                              "against GT grey_renders.")
-    add_agent(parser, required=True)
+    add_agent(parser)
     parser.add_argument(
         "--setting",
         dest="setting", required=True, choices=SETTING_CHOICES,
@@ -161,8 +161,6 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--light-ref-extent", type=float, default=2.5,
                         help="Benchmark light normalization extent.")
     parser.add_argument("--timeout", type=int, default=2400)
-    parser.add_argument("--overwrite-artifacts", action="store_true")
-    parser.add_argument("--overwrite-metrics", action="store_true")
     parser.add_argument("--skip-prepare", action="store_true",
                         help="Do not render/export; score whatever exists.")
     parser.add_argument("--dry-run", action="store_true")
@@ -562,6 +560,26 @@ def _is_render_failed_or_missing(
     return False
 
 
+def script_fingerprint_matches(path: Path, fingerprint: str) -> bool:
+    """Unknown or unreadable provenance requires rebuilding the artifact."""
+    try:
+        return path.read_text(encoding="utf-8").strip() == fingerprint
+    except (OSError, UnicodeError):
+        return False
+
+
+def save_script_fingerprints(record: dict, paths: dict[str, Path],
+                             fingerprints: dict[str, str],
+                             names: list[str]) -> None:
+    """Only successful preparation may mark artifacts as current."""
+    if record["status"] != "OK":
+        return
+    for name in names:
+        path = paths[name]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(fingerprints[name] + "\n", encoding="utf-8")
+
+
 def prepare_predictions(args: argparse.Namespace, model_dir: Path,
                         results_root: Path, grey_results_root: Path,
                         grey_model_dir: Path, agent: str,
@@ -570,10 +588,24 @@ def prepare_predictions(args: argparse.Namespace, model_dir: Path,
     if not args.dry_run:
         sanitize_instance_scripts(model_dir, names)
 
+    fingerprints = {
+        name: hashlib.sha256(
+            (model_dir / name / f"{name}.py").read_bytes()).hexdigest()
+        for name in names
+    }
+    render_fingerprints = {
+        name: model_dir / name / "renders" / "source_script.sha256"
+        for name in names
+    }
+    grey_fingerprints = {
+        name: grey_model_dir / name / "grey_renders" / "source_script.sha256"
+        for name in names
+    }
     render_light_power = 1.0 if args.texture_renders else 0.5
     missing_renders = [
         name for name in names
-        if args.overwrite_artifacts
+        if not script_fingerprint_matches(
+            render_fingerprints[name], fingerprints[name])
         or _is_render_failed_or_missing(
             model_dir / name,
             light_power=render_light_power,
@@ -592,7 +624,10 @@ def prepare_predictions(args: argparse.Namespace, model_dir: Path,
             "--timeout", str(args.timeout), "--overwrite",
         ]
         add_instances(command, missing_renders)
-        records.append(run_command("prepare:renders", command, args.dry_run))
+        record = run_command("prepare:renders", command, args.dry_run)
+        records.append(record)
+        save_script_fingerprints(
+            record, render_fingerprints, fingerprints, missing_renders)
     else:
         print("\n[prepare:renders] all selected four-view renders exist; skip")
 
@@ -600,7 +635,8 @@ def prepare_predictions(args: argparse.Namespace, model_dir: Path,
     if args.grey_shaded:
         missing_grey_renders = [
             name for name in names
-            if args.overwrite_artifacts
+            if not script_fingerprint_matches(
+                grey_fingerprints[name], fingerprints[name])
             or _is_render_failed_or_missing(
                 grey_model_dir / name,
                 light_power=0.5,
@@ -624,14 +660,20 @@ def prepare_predictions(args: argparse.Namespace, model_dir: Path,
                 "--timeout", str(args.timeout), "--overwrite",
             ]
             add_instances(command, missing_grey_renders)
-            records.append(run_command(
-                "prepare:grey-renders", command, args.dry_run))
+            record = run_command("prepare:grey-renders", command, args.dry_run)
+            records.append(record)
+            save_script_fingerprints(
+                record, grey_fingerprints, fingerprints, missing_grey_renders)
         else:
             print("\n[prepare:grey-renders] all selected grey-shaded "
                   "four-view renders exist; skip")
 
     artifact_root = model_dir / "_evaluation_artifacts"
     suffix = ".glb" if args.texture_renders else "_grey.glb"
+    glb_fingerprints = {
+        name: artifact_root / name / f"{name}{suffix}.source_script.sha256"
+        for name in names
+    }
     artifact_geometry_current = False
     preprocess_summary = artifact_root / "preprocess_summary.json"
     if preprocess_summary.is_file():
@@ -645,7 +687,8 @@ def prepare_predictions(args: argparse.Namespace, model_dir: Path,
             pass
     missing_glbs = [
         name for name in names
-        if args.overwrite_artifacts
+        if not script_fingerprint_matches(
+            glb_fingerprints[name], fingerprints[name])
         or not artifact_geometry_current
         or not (artifact_root / name / f"{name}{suffix}").is_file()
     ]
@@ -663,9 +706,11 @@ def prepare_predictions(args: argparse.Namespace, model_dir: Path,
             "--artifact-mode", ("color-glb-only" if args.texture_renders
                                 else "grey-glb-only"),
         ]
-        if args.overwrite_artifacts:
-            command.append("--overwrite")
-        records.append(run_command("prepare:glb", command, args.dry_run))
+        command.append("--overwrite")
+        record = run_command("prepare:glb", command, args.dry_run)
+        records.append(record)
+        save_script_fingerprints(
+            record, glb_fingerprints, fingerprints, missing_glbs)
     else:
         print("\n[prepare:glb] all selected GLBs exist; skip")
 
@@ -676,7 +721,7 @@ def prepare_predictions(args: argparse.Namespace, model_dir: Path,
             if not source.is_file():
                 continue
             target = model_dir / name / "glb" / f"{name}.glb"
-            replace_symlink(target, source, overwrite=args.overwrite_artifacts)
+            replace_symlink(target, source, overwrite=True)
             linked += 1
         print(f"[prepare:glb] prepared metric links for {linked}/{len(names)} instances")
     return (bool(missing_renders), bool(missing_grey_renders),
@@ -753,7 +798,7 @@ def metric_commands(args: argparse.Namespace, results_root: Path,
 def main(argv: list[str] | None = None) -> int:
     load_project_env()
     args = parse_args(argv)
-    gt_root = resolve_input_path(args.data_path)
+    gt_root = args.data_path.resolve()
     outputs_root = resolve_input_path(args.output_dir)
     grey_shaded_outputs_root = resolve_input_path(
         args.grey_shaded_outputs_root)
@@ -801,15 +846,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  image encoders:       {', '.join(args.image_encoders)}")
 
     records: list[dict] = []
-    renders_changed = False
-    grey_renders_changed = False
-    glbs_changed = False
     if not args.skip_prepare:
-        (renders_changed,
-         grey_renders_changed,
-         glbs_changed) = prepare_predictions(
-             args, model_dir, results_root, grey_results_root, grey_model_dir,
-             agent, names, records)
+        prepare_predictions(
+            args, model_dir, results_root, grey_results_root, grey_model_dir,
+            agent, names, records)
     else:
         print("\n[prepare] skipped by --skip-prepare")
 
@@ -833,39 +873,6 @@ def main(argv: list[str] | None = None) -> int:
                           "metric:grey_shaded_image_similarity:")
                       else metrics_dir)
         output_path = output_dir / output_name if output_name else None
-        render_metric_invalidated = (
-            renders_changed and label.startswith("metric:image_similarity:"))
-        render_metric_invalidated = render_metric_invalidated or (
-            grey_renders_changed
-            and label.startswith("metric:grey_shaded_image_similarity:"))
-        shape_metric_invalidated = (
-            glbs_changed
-            and label in ("metric:shape_chamfer", "metric:shape_betti",
-                          "metric:shape_uni3d")
-        )
-        shape_metric_invalidated = shape_metric_invalidated or (
-            renders_changed and label == "metric:shape_uni3d"
-        )
-        chamfer_schema_invalidated = False
-        if (label == "metric:shape_chamfer" and output_path
-                and output_path.is_file()):
-            try:
-                existing_chamfer = json.loads(output_path.read_text())
-                chamfer_schema_invalidated = not isinstance(
-                    existing_chamfer.get("cd_axismin"), dict)
-            except (OSError, json.JSONDecodeError):
-                chamfer_schema_invalidated = True
-        if (label != "metric:usage" and output_path and output_path.is_file()
-                and not args.overwrite_metrics
-                and not render_metric_invalidated
-                and not shape_metric_invalidated
-                and not chamfer_schema_invalidated):
-            print(f"\n[{label}] {output_path.name} exists; skip "
-                  "(use --overwrite-metrics to rerun)")
-            records.append({"label": label, "command": command,
-                            "returncode": None, "status": "SKIPPED_EXISTING",
-                            "elapsed_s": 0.0, "output": str(output_path)})
-            continue
         record = run_command(label, command, args.dry_run)
         if output_path:
             record["output"] = str(output_path)

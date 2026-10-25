@@ -12,11 +12,10 @@ from pathlib import Path
 from .project_env import default_blender
 from .agent_registry import AGENT_CHOICES
 from .common_cli import boolean_value, positive_int
-from core.paths import BENCHMARK_ROOT, CORE_ROOT, PROJECT_ROOT
+from core.paths import CORE_ROOT, PROJECT_ROOT
 from core.blender_runtime import blender_environment
 
 GRADED_EXP_DIR = PROJECT_ROOT
-DEFAULT_INPUT_PATH = BENCHMARK_ROOT
 DEFAULT_OUTPUT_PATH = GRADED_EXP_DIR / "outputs"
 RENDER_DRIVER = CORE_ROOT / "render.py"
 
@@ -145,7 +144,7 @@ def render_script(script: Path, renders: Path, *, blender: str,
 
 
 __all__ = [
-    "AGENT_CHOICES", "AGENT_SPECS", "DEFAULT_INPUT_PATH",
+    "AGENT_CHOICES", "AGENT_SPECS",
     "DEFAULT_OUTPUT_PATH", "GRADED_EXP_DIR", "agent_spec",
     "benchmark_instance", "boolean_value", "default_blender",
     "discover_instances", "instance_ref", "nonnegative_int", "output_root",

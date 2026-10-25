@@ -31,14 +31,13 @@ from core.harness.project_env import default_blender
 from core.harness.run_config import atomic_write_json, thinking_depth as configured_thinking_depth
 from core.harness.usage_accounting import (runtime_latency_line, write_instance_usage,
                               write_runtime_latency_summary)
-from core.paths import BENCHMARK_ROOT, PROJECT_ROOT, PROMPTS_ROOT
+from core.paths import PROJECT_ROOT, PROMPTS_ROOT
 from prompts.image_iterations import (
     editing_prompt, initial_prompt, parse_feedback, render_feedback,
 )
 
 
 GRADED_EXP_DIR = PROJECT_ROOT
-DEFAULT_INPUT_PATH = BENCHMARK_ROOT
 DEFAULT_PROMPT_PATH = PROMPTS_ROOT / "image_only.py"
 VIEW_NAMES = ("Image_005.png", "Image_015.png",
               "Image_025.png", "Image_035.png")
@@ -553,7 +552,7 @@ def build_parser(view_mode: str) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         allow_abbrev=False,
         description=f"Sequential {mode_name} image-to-3D generation and editing")
-    add_data_path(parser, DEFAULT_INPUT_PATH, dest="input_path")
+    add_data_path(parser, dest="input_path")
     add_output_dir(
         parser, GRADED_EXP_DIR / "outputs",
         help_text="Base output directory; setting, texture mode, agent, and "
@@ -724,4 +723,4 @@ def main(view_mode: str, argv=None) -> int:
 
 
 __all__ = ["AGENT_CHOICES", "BackendLimitExhausted", "BatchLimitStop",
-           "DEFAULT_INPUT_PATH", "main"]
+           "main"]
