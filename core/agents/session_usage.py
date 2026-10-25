@@ -29,11 +29,7 @@ from pathlib import Path
 
 from core.agents import agents
 
-HERE = Path(__file__).resolve().parent
-# The adapter's repository argument is intentionally local.  Usage collection
-# never needs MCP source trees; keeping this here prevents accidental coupling
-# to the repository layout containing this vendored copy.
-REPO = HERE
+from core.paths import PROJECT_ROOT
 
 # Each harness's run record, and the key its agent block lives under.
 RECORDS = {"ActiveVisual.run.json": "run",
@@ -92,7 +88,7 @@ def collect(path: Path) -> dict | None:
     model = block.get("model") or agent_block.get("model") or ""
     session_dir = path.parent / "session"
 
-    agent = agents.build(kind, {"model": model}, REPO, 60)
+    agent = agents.build(kind, {"model": model}, PROJECT_ROOT, 60)
     run = agents.AgentRun(kind=kind, model=model)
     log = session_dir / TURN_LOGS.get(kind, "")
     run.turns.append(agents.TurnResult(label="prompt", returncode=0, seconds=0.0,
@@ -132,7 +128,7 @@ def number(value) -> str:
 
 def main(argv=None) -> int:
     args = parse_args(argv)
-    roots = [Path(r).resolve() for r in args.root] or [HERE / "output"]
+    roots = [Path(r) for r in args.root] or [Path("outputs")]
 
     rows = []
     for path in find_records(roots):

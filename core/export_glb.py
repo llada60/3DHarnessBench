@@ -74,8 +74,8 @@ def run_blender_worker(argv: list[str]) -> int:
     started = time.monotonic()
     record: dict[str, object] = {
         "status": None,
-        "script": str(Path(worker.script).resolve()),
-        "output": str(Path(worker.output).resolve()),
+        "script": worker.script,
+        "output": worker.output,
     }
     try:
         bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -174,7 +174,7 @@ def run_instance(args: argparse.Namespace, directory: Path) -> dict:
         return {"instance": name, "status": "SKIPPED", "output": str(output)}
     command = [
         args.blender, "--background", "--factory-startup", "--python-use-system-env",
-        "--python", str(Path(__file__).resolve()), "--",
+        "--python-expr", "from core.export_glb import main; main()", "--",
         "--blender-worker", "--script", str(directory / f"{name}.py"),
         "--output", str(output), "--log", str(log),
     ]
@@ -213,8 +213,6 @@ def main(argv: list[str] | None = None) -> int:
     if "--blender-worker" in argsv:
         return run_blender_worker(argsv)
     args = parse_args(argsv)
-    args.input_data_path = args.input_data_path.resolve()
-    args.output_data_path = args.output_data_path.resolve()
     if not args.input_data_path.is_dir():
         raise SystemExit(f"input directory not found: {args.input_data_path}")
     if not Path(args.blender).is_file():

@@ -20,7 +20,7 @@ def blender_environment(
     installing anything into the user's Blender profile.
     """
     env = dict(os.environ if base_env is None else base_env)
-    paths = [str(PROJECT_ROOT), *(str(path.resolve()) for path in addon_roots)]
+    paths = [str(PROJECT_ROOT), *(str(path) for path in addon_roots)]
     paths.extend(path for path in env.get("PYTHONPATH", "").split(os.pathsep) if path)
     env["PYTHONPATH"] = os.pathsep.join(dict.fromkeys(paths))
     env["PYTHONNOUSERSITE"] = "1"

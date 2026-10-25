@@ -1,11 +1,15 @@
-"""Resolve bundled resources from the checkout, independent of the caller's cwd."""
+"""Project paths. Run public commands from the repository root.
+
+Keep resource paths relative. Capture the launch directory once for subprocesses
+that need to return from an agent workspace to the repository.
+"""
 
 from pathlib import Path
 
-CORE_ROOT = Path(__file__).resolve().parent
-PROJECT_ROOT = CORE_ROOT.parent
-BENCHMARK_ROOT = PROJECT_ROOT / "benchmark"
-CONFIGS_ROOT = PROJECT_ROOT / "configs"
-PROMPTS_ROOT = PROJECT_ROOT / "prompts"
-METRICS_ROOT = PROJECT_ROOT / "metrics"
+PROJECT_ROOT = Path.cwd()
+CORE_ROOT = Path("core")
+BENCHMARK_ROOT = Path("benchmark")
+CONFIGS_ROOT = Path("configs")
+PROMPTS_ROOT = Path("prompts")
+METRICS_ROOT = Path("metrics")
 BLENDER_MCP_ROOT = CORE_ROOT / "blender_mcp"

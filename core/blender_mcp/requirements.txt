@@ -1,0 +1,2 @@
+# Harness runtime constraint; do not rewrite the upstream pyproject.toml.
+mcp[cli]==1.29.0

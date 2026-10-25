@@ -23,7 +23,8 @@ prompts/
 
 Single-view and Multi-view share `image_only.py`, whose
 `build_prompt(texture_renders)` provides the initial task instructions.
-`--prompt-path` overrides this base prompt module. `image_iterations.py`
+`--prompt-module my_package.my_prompt` selects an importable module that
+defines `build_prompt(texture_renders)`. The default is `prompts.image_only`. `image_iterations.py`
 provides `initial_prompt`, `editing_prompt`, `parse_feedback`, and
 `render_feedback`: the initial image-count wrapper, the subsequent editing
 rounds, and retry feedback for an unparseable reply or a Blender render failure.

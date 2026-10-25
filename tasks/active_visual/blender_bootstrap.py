@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import sys
 from pathlib import Path
 
 import bpy
 
+from core.blender_mcp.scripts.blender_mcp_bootstrap import load_addon, replace_scene_with_glb
 from core.blender_scene_setup import (
     clear_scene,
     geometry_objects,
@@ -20,8 +20,8 @@ from core.blender_scene_setup import (
 def arguments() -> argparse.Namespace:
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     parser = argparse.ArgumentParser()
-    parser.add_argument("--upstream-bootstrap", required=True, type=Path)
-    parser.add_argument("--addon", required=True, type=Path)
+    parser.add_argument("--addon-module", default="core.blender_mcp.viewport_only.addon",
+                        help="importable Blender add-on module")
     parser.add_argument("--port", required=True, type=int)
     parser.add_argument(
         "--role", required=True, choices=("viewport_only", "full_access")
@@ -32,18 +32,6 @@ def arguments() -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def load_upstream(path: Path):
-    path = path.expanduser().resolve(strict=True)
-    spec = importlib.util.spec_from_file_location(
-        "graded_blender_mcp_bootstrap", path
-    )
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"Cannot load upstream bootstrap: {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 def main() -> None:
     args = arguments()
     if not 1024 <= args.port <= 65535:
@@ -51,11 +39,10 @@ def main() -> None:
     if args.glb is not None and args.role != "viewport_only":
         raise ValueError("--glb is only valid for the viewport_only instance")
 
-    upstream = load_upstream(args.upstream_bootstrap)
     if args.glb is not None:
         # The upstream import clears the scene. Install the grading scene only
         # after import, using the GLB geometry's actual extent.
-        upstream.replace_scene_with_glb(args.glb)
+        replace_scene_with_glb(args.glb)
         _cam, _center, _cam_r, _cam_h, extent = setup_scene(
             geometry_objects(), frame_viewports=True,
             light_power=args.light_power,
@@ -84,7 +71,7 @@ def main() -> None:
             flush=True,
         )
 
-    upstream.load_addon(args.addon, args.role, args.port)
+    load_addon(args.addon_module, args.role, args.port)
 
 
 if __name__ == "__main__":

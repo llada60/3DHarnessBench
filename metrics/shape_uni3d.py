@@ -34,7 +34,6 @@ Output:
 """
 
 import argparse
-import importlib.util
 import json
 import os
 import sys
@@ -50,8 +49,7 @@ import trimesh
 from huggingface_hub import hf_hub_download
 from PIL import Image
 
-EVAL_ROOT = Path(os.environ.get("EVAL_ROOT")
-                 or Path(__file__).resolve().parent)
+EVAL_ROOT = Path(os.environ.get("EVAL_ROOT", "metrics"))
 DEFAULT_DATA_ROOT = EVAL_ROOT.parent / "benchmark"
 
 
@@ -98,23 +96,11 @@ def _install_fake_pointnet2():
 
 
 def load_pointcloud_encoder():
-    """Load only the external Uni3D encoder when inference is requested.
-
-    The upstream source is not an installed package. Loading its standalone
-    encoder by filename avoids a global `models` import and training-only
-    dependencies, and leaves the interpreter's search path unchanged.
-    """
-    repo = Path(os.environ.get("UNI3D_REPO", EVAL_ROOT / "external" / "Uni3D"))
-    source = repo.expanduser().resolve() / "models" / "point_encoder.py"
-    if not source.is_file():
-        raise FileNotFoundError(f"Missing Uni3D encoder: {source}; set UNI3D_REPO")
-    spec = importlib.util.spec_from_file_location("uni3d_point_encoder", source)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Cannot load Uni3D encoder: {source}")
+    """Import the encoder from the Uni3D models directory on PYTHONPATH."""
     _install_fake_pointnet2()
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module.PointcloudEncoder
+    from point_encoder import PointcloudEncoder
+
+    return PointcloudEncoder
 
 
 class _Uni3D(torch.nn.Module):

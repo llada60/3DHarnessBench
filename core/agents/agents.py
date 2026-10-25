@@ -119,6 +119,8 @@ from datetime import timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from core.blender_mcp.runtime import server_spec
+
 # Entries inside a run's `session/` directory that are a CLI's own persistent
 # store rather than this attempt's export. The driver must not archive these
 # away when it rotates a finished attempt: they are what `resume` reads.
@@ -176,15 +178,10 @@ def mcp_server_specs(repo: Path, full_access_port: int, viewport_only_port: int,
                      official_source: Path | None = None) -> dict[str, dict]:
     """Official reconstruction server plus the restricted reference server."""
     uv = uv_bin or shutil.which("uv") or "/usr/local/bin/uv"
-    source = official_source or (
-        repo / ".cache" / "active_visual" / "blender_mcp-v1.0.0")
+    if official_source is None:
+        raise ValueError("An explicit Blender MCP source checkout is required")
     return {
-        full_name: {
-            "command": uv,
-            "args": ["run", "--directory", str(source / "mcp"), "blender-mcp"],
-            "env": {"BLENDER_MCP_HOST": "127.0.0.1",
-                    "BLENDER_MCP_PORT": str(full_access_port)},
-        },
+        full_name: server_spec(official_source, full_access_port, uv_bin=uv),
         viewport_name: {
             "command": uv,
             "args": ["run", "--directory", str(repo / "core" / "blender_mcp" / "viewport_only"),

@@ -366,7 +366,7 @@ def build_runtime_latency_summary(model_dir: Path) -> dict:
         "metric": "active_agent_latency",
         "unit": "seconds",
         "definition": ACTIVE_AGENT_LATENCY_DEFINITION,
-        "model_dir": str(Path(model_dir).resolve()),
+        "model_dir": str(model_dir),
         "method": "runtime per-instance usage.json agent_seconds",
         "n_instances": n_instances,
         "agent_seconds": {

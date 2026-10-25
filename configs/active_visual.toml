@@ -12,6 +12,9 @@ skip_completed = true
 [official]
 source_url = "https://projects.blender.org/lab/blender_mcp.git"
 source_ref = "v1.0.0"
+source_commit = "03004fd0216bfe5e0a3d9ac9b47d5efadc3d78c4"
+# Optional local MCP repository; overrides remote source settings.
+# source_path = "/path/to/blender_mcp"
 server_name = "official-blender-mcp"
 cache_dir = ".cache/active_visual"
 

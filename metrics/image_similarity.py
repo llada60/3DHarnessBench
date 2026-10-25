@@ -22,8 +22,7 @@ from PIL import Image
 from scipy.optimize import linear_sum_assignment
 from transformers import AutoModel, AutoProcessor, AutoImageProcessor
 
-EVAL_ROOT = Path(os.environ.get("EVAL_ROOT")
-                 or Path(__file__).resolve().parent)
+EVAL_ROOT = Path(os.environ.get("EVAL_ROOT", "metrics"))
 DEFAULT_RESULTS_ROOT = EVAL_ROOT / "results"
 DEFAULT_DATA_ROOT    = EVAL_ROOT.parent / "benchmark"
 

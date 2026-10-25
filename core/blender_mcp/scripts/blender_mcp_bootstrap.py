@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-import importlib.util
+from importlib import import_module
 from pathlib import Path
 import sys
 
@@ -17,7 +17,8 @@ def parse_args() -> argparse.Namespace:
         raise RuntimeError("Missing '--' before bootstrap arguments") from exc
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--addon", required=True, type=Path)
+    parser.add_argument("--addon-module", default="core.blender_mcp.viewport_only.addon",
+                        help="importable Blender add-on module")
     parser.add_argument("--port", required=True, type=int)
     parser.add_argument(
         "--role", required=True, choices=("viewport_only", "full_access")
@@ -39,19 +40,11 @@ def replace_scene_with_glb(glb_path: Path) -> None:
     print(f"BlenderMCP launcher: imported GLB into viewport_only: {glb_path}")
 
 
-def load_addon(addon_path: Path, role: str, port: int) -> None:
-    addon_path = addon_path.expanduser().resolve(strict=True)
-    if not addon_path.is_file():
-        raise ValueError(f"Add-on path is not a file: {addon_path}")
-
-    module_name = f"dual_blender_mcp_{role}_addon"
-    spec = importlib.util.spec_from_file_location(module_name, addon_path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"Cannot load add-on module: {addon_path}")
-
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
+def load_addon(module_name: str, role: str, port: int) -> None:
+    if module_name == "core.blender_mcp.viewport_only.addon":
+        from core.blender_mcp.viewport_only import addon as module
+    else:
+        module = import_module(module_name)
     module.DEFAULT_PORT = port
     module.register()
 
@@ -101,7 +94,7 @@ def main() -> None:
 
     if args.glb is not None:
         replace_scene_with_glb(args.glb)
-    load_addon(args.addon, args.role, args.port)
+    load_addon(args.addon_module, args.role, args.port)
 
 
 if __name__ == "__main__":

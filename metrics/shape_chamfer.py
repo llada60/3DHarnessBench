@@ -21,8 +21,7 @@ import numpy as np
 import trimesh
 from scipy.spatial import cKDTree
 
-EVAL_ROOT = Path(os.environ.get("EVAL_ROOT")
-                 or Path(__file__).resolve().parent)
+EVAL_ROOT = Path(os.environ.get("EVAL_ROOT", "metrics"))
 DEFAULT_DATA_ROOT = EVAL_ROOT.parent / "benchmark"
 
 
