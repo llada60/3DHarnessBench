@@ -8,7 +8,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path.cwd()
 CORE_ROOT = Path("core")
-BENCHMARK_ROOT = Path("benchmark")
+BENCHMARK_ROOT = Path("data/benchmark")
 CONFIGS_ROOT = Path("configs")
 PROMPTS_ROOT = Path("prompts")
 METRICS_ROOT = Path("metrics")

@@ -2,7 +2,7 @@
 
 [run]
 tasks_root = "outputs/ActiveVisual/w_texture"
-input_root = "benchmark"
+input_root = "data/benchmark"
 tasks = []
 prompt_file = "prompt.txt"
 ref_file = "ref.glb"

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import time
 from dataclasses import dataclass
@@ -12,15 +13,12 @@ from pathlib import Path
 from .project_env import default_blender
 from .agent_registry import AGENT_CHOICES
 from .common_cli import boolean_value, positive_int
-<<<<<<< HEAD
-from core.paths import CORE_ROOT, PROJECT_ROOT
-=======
-from core.paths import BENCHMARK_ROOT, PROJECT_ROOT
->>>>>>> 10534ff8ebc4589ed4e59c26feb44b5617ea1a70
+from core.paths import PROJECT_ROOT
 from core.blender_runtime import blender_environment
 
 GRADED_EXP_DIR = PROJECT_ROOT
 DEFAULT_OUTPUT_PATH = GRADED_EXP_DIR / "outputs"
+
 
 @dataclass(frozen=True)
 class MCPAgentSpec:
@@ -34,11 +32,12 @@ AGENT_SPECS = {
     "kimi-k3": MCPAgentSpec("kimi", "k3"),
     "opus-5": MCPAgentSpec("opus", "claude-opus-5"),
     "fable-5": MCPAgentSpec("claude", "claude-fable-5"),
+    "qwen-3-8": MCPAgentSpec("qwen", "Qwen/Qwen3.8-27B"),
     # qwen3.8-max-preview is Model Studio's token-plan API: same qwen code
     # CLI, but a different base URL and $QWEN_API_KEY, so it
     # gets its own kind ([agent.qwen-tokenplan]) and its own output directory.
     "qwen3-8-max-preview": MCPAgentSpec("qwen-tokenplan",
-                                         "qwen3.8-max-preview"),
+                                        "qwen3.8-max-preview"),
     "gemini3-1-pro": MCPAgentSpec("agy", "Gemini 3.1 Pro (High)"),
     "minimax-m3": MCPAgentSpec("minimax-m3", "MiniMax-M3"),
 }
@@ -56,6 +55,9 @@ def nonnegative_int(value: str) -> int:
 
 
 def agent_spec(alias: str) -> MCPAgentSpec:
+    if alias == "qwen-3-8":
+        return MCPAgentSpec("qwen", os.environ.get("VLLM_MODEL_NAME")
+                            or AGENT_SPECS[alias].model)
     return AGENT_SPECS[alias]
 
 

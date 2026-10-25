@@ -37,7 +37,7 @@ def add_data_path(parser: argparse.ArgumentParser, *,
     parser.add_argument(
         "--data-path",
         dest=dest, type=Path, required=True,
-        help=help_text or "required benchmark root or one instance directory; "
+        help=help_text or "required benchmark root (e.g. data/benchmark) or one instance directory; "
         "use a path relative to the current working directory or an absolute path",
     )
 

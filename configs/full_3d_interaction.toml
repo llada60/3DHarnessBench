@@ -1,7 +1,7 @@
 # Full3DInteraction defaults. Public CLI options override these values.
 
 [run]
-input_root = "benchmark"
+input_root = "data/benchmark"
 output_root = "outputs/Full3DInteraction/w_texture"
 tasks = []
 prompt_file = "prompt.txt"

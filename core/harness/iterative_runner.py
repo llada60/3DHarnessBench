@@ -29,27 +29,19 @@ from .common_cli import (add_agent, add_data_path, add_output_dir,
 from core.harness.project_env import default_blender
 from core.harness.run_config import atomic_write_json, thinking_depth as configured_thinking_depth
 from core.harness.usage_accounting import (runtime_latency_line, write_instance_usage,
-                              write_runtime_latency_summary)
-<<<<<<< HEAD
-from core.paths import PROJECT_ROOT, PROMPTS_ROOT
-=======
-from core.paths import BENCHMARK_ROOT, PROJECT_ROOT
->>>>>>> 10534ff8ebc4589ed4e59c26feb44b5617ea1a70
+                                           write_runtime_latency_summary)
+from core.paths import PROJECT_ROOT
 from prompts.image_iterations import (
     editing_prompt, initial_prompt, parse_feedback, render_feedback,
 )
 
 
 GRADED_EXP_DIR = PROJECT_ROOT
-<<<<<<< HEAD
-DEFAULT_PROMPT_PATH = PROMPTS_ROOT / "image_only.py"
-=======
-DEFAULT_INPUT_PATH = BENCHMARK_ROOT
 DEFAULT_PROMPT_MODULE = "prompts.image_only"
->>>>>>> 10534ff8ebc4589ed4e59c26feb44b5617ea1a70
 VIEW_NAMES = ("Image_005.png", "Image_015.png",
               "Image_025.png", "Image_035.png")
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp", ".bmp")
+
 
 @dataclass(frozen=True)
 class AgentSpec:
@@ -78,21 +70,23 @@ class BatchLimitStop(RuntimeError):
 
 AGENT_SPECS = {
     "gpt-6-astra": AgentSpec("backends.codex", "codex",
-                              "gpt-6-astra", "codex"),
+                             "gpt-6-astra", "codex"),
     "gpt-5-6-sol": AgentSpec("backends.codex", "codex",
-                              "gpt-5.6-sol", "codex"),
+                             "gpt-5.6-sol", "codex"),
     "kimi-k3": AgentSpec("backends.kimi", "inline", "kimi-code-k3", "kimi"),
     "opus-5": AgentSpec("backends.claude", "inline",
-                         "claude-code-opus-5", "opus"),
+                        "claude-code-opus-5", "opus"),
     "fable-5": AgentSpec("backends.claude", "inline",
-                          "claude-code-fable-5", "claude"),
+                         "claude-code-fable-5", "claude"),
+    "qwen-3-8": AgentSpec("backends.qwen", "inline",
+                          "Qwen/Qwen3.8-27B", "qwen-3-8"),
     "qwen3-8-max-preview": AgentSpec("backends.qwen", "inline",
-                                      "qwen3.8-max-preview",
-                                      "qwen3-8-max-preview"),
+                                     "qwen3.8-max-preview",
+                                     "qwen3-8-max-preview"),
     "gemini3-1-pro": AgentSpec("backends.gemini", "agy",
-                                "gemini-3.1-pro", "agy"),
+                               "gemini-3.1-pro", "agy"),
     "minimax-m3": AgentSpec("backends.minimax", "inline",
-                             "MiniMax-M3", "minimax"),
+                            "MiniMax-M3", "minimax"),
 }
 
 
@@ -135,7 +129,8 @@ def load_prompt(module_name: str, texture_renders: bool) -> str:
         build_prompt = importlib.import_module(module_name).build_prompt
     prompt = build_prompt(texture_renders)
     if not isinstance(prompt, str) or not prompt.strip():
-        raise ValueError(f"Prompt module {module_name} returned an empty/non-string prompt")
+        raise ValueError(
+            f"Prompt module {module_name} returned an empty/non-string prompt")
     return prompt
 
 
@@ -180,7 +175,8 @@ class Backend:
             self.interface = agent.visual_interface
             self.interface.thinking_depth = self.args.thinking_depth
         elif self.spec.kind == "codex" and not shutil.which("codex"):
-            raise RuntimeError("Codex CLI was not found on PATH. Install codex before running.")
+            raise RuntimeError(
+                "Codex CLI was not found on PATH. Install codex before running.")
 
     @staticmethod
     def _named_images(scope: str, role_images):
@@ -206,7 +202,8 @@ class Backend:
         if self.spec.kind == "codex":
             image_map, entries = self._named_images(scope, role_images)
             manifest = self.module.image_manifest(entries)
-            full_prompt = "\n\n".join((manifest, prompt)) if manifest else prompt
+            full_prompt = "\n\n".join(
+                (manifest, prompt)) if manifest else prompt
             return self.module.call_codex(
                 full_prompt, image_map, self.spec.model,
                 self.args.timeout, self.args.thinking_depth)
@@ -291,7 +288,8 @@ def discover_tasks(input_path: Path, image_dir: str, view_mode: str,
     if limit is not None:
         tasks = tasks[:limit]
     if not tasks:
-        raise SystemExit(f"No benchmark tasks with {image_dir!r} under {input_path}")
+        raise SystemExit(
+            f"No benchmark tasks with {image_dir!r} under {input_path}")
     return tasks
 
 
@@ -438,7 +436,8 @@ def run_task(backend: Backend, task: str, target_views: list[Path],
                     agent_seconds = time.monotonic() - agent_started
                     log["agent_seconds"] = (
                         float(log.get("agent_seconds") or 0.0) + agent_seconds)
-                raw_path = out_dir / f"{task}.iter{iteration}.attempt{attempt}.json"
+                raw_path = out_dir / \
+                    f"{task}.iter{iteration}.attempt{attempt}.json"
                 if isinstance(raw, dict):
                     raw["agent_seconds"] = round(agent_seconds, 3)
                 json_dump(raw_path, raw)
@@ -455,11 +454,13 @@ def run_task(backend: Backend, task: str, target_views: list[Path],
                     attempt_prompt = parse_feedback(base_prompt, text)
                     continue
 
-                code_path = out_dir / f"{task}.iter{iteration}.attempt{attempt}.py"
+                code_path = out_dir / \
+                    f"{task}.iter{iteration}.attempt{attempt}.py"
                 code_path.write_text(script.rstrip() + "\n")
                 renders_dir = (out_dir / "iteration_renders" /
                                f"iter{iteration}" / f"attempt{attempt}")
-                record = backend.module.render_script(code_path, renders_dir, args)
+                record = backend.module.render_script(
+                    code_path, renders_dir, args)
                 views = backend.module.rendered_views(renders_dir)
                 attempt_record.update({
                     "status": record.get("status"),
@@ -623,7 +624,8 @@ def validate_runtime(args, parser: argparse.ArgumentParser) -> None:
         args.thinking_depth = configured_thinking_depth(spec.config_agent)
     efforts = supported_efforts(spec.config_agent)
     if args.thinking_depth not in efforts:
-        parser.error(f"--thinking-depth for {args.agent} must be one of {efforts}")
+        parser.error(
+            f"--thinking-depth for {args.agent} must be one of {efforts}")
     if not args.dry_run:
         blender = (shutil.which(args.blender)
                    if os.sep not in args.blender else args.blender)
@@ -661,7 +663,8 @@ def main(view_mode: str, argv=None) -> int:
 
     if args.dry_run:
         for task, target_views in tasks:
-            print(f"  [{task}] views={len(target_views)} output={run_root / task}")
+            print(
+                f"  [{task}] views={len(target_views)} output={run_root / task}")
         return 0
 
     batch_limit = threading.Event()
