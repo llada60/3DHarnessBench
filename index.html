@@ -18,28 +18,31 @@
 
 <body>
     <header class="site-nav-wrap">
-        <details class="section-menu" id="sectionMenu">
-            <summary class="section-menu-toggle" aria-label="Open page navigation" title="Page navigation">
-                <span class="nav-chevron" aria-hidden="true"></span>
-            </summary>
-            <nav class="site-nav" aria-label="Page sections">
+        <div class="site-nav-inner">
+            <a class="site-brand" href="#top" aria-label="3DHarnessBench home">
+                <img src="assets/icon.png" alt="" width="36" height="36" />
+                <span>3DHarnessBench</span>
+            </a>
+            <nav class="site-nav" aria-label="Main page sections">
                 <a href="#abstract">Abstract</a>
-                <a href="#gallery">Results Gallery</a>
+                <a href="#gallery">Gallery</a>
                 <a href="#overview">Settings</a>
                 <a href="#architecture">Pipeline</a>
+                <a href="#analysis">Results</a>
                 <a href="#leaderboard">Leaderboard</a>
-                <a class="analysis-link" href="#analysis">Analysis — Main Results</a>
-                <a class="analysis-link" href="#geometric-grounding-analysis">Analysis — Geometric Grounding</a>
-                <a class="analysis-link" href="#active-visual-analysis">Analysis — Active Visual</a>
-                <a class="analysis-link" href="#self-correction-analysis">Analysis — Initialization &amp;
-                    Self-correction</a>
-                <a class="analysis-link" href="#interaction-efficiency">Analysis — Interaction Efficiency</a>
-                <a class="analysis-link" href="#perceptual-evaluation">Analysis — VLM-based Perceptual Evaluation</a>
-                <a href="#acknowledgements">Acknowledgements</a>
-                <a href="#bibtex">BibTeX</a>
-                <a href="#contact">Contact</a>
+                <a href="#bibtex">Citations</a>
             </nav>
-        </details>
+            <div class="site-nav-actions">
+                <a class="site-nav-icon" href="https://github.com/llada60/3DHarnessBench" target="_blank"
+                    rel="noopener noreferrer" aria-label="GitHub" title="GitHub">
+                    <img src="assets/icons/github.svg" alt="" width="20" height="20" />
+                </a>
+                <a class="site-nav-icon" href="https://huggingface.co/datasets/lingada/3DHarnessBench" target="_blank"
+                    rel="noopener noreferrer" aria-label="Hugging Face dataset" title="Hugging Face dataset">
+                    <img src="assets/icons/huggingface.svg" alt="" width="20" height="20" />
+                </a>
+            </div>
+        </div>
     </header>
     <main>
         <!-- 1. HERO / TITLE -->
